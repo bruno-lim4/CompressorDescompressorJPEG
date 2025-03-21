@@ -22,6 +22,32 @@ struct bmpinfoheader_ {
     unsigned int biClrImportant; /* Number of important colors */
 };
 
+struct pixel_ {
+    char r, g, b;
+};
+
+PIXEL* criarPixel(char r, char g, char b) {
+    PIXEL* pixel = (PIXEL*) malloc(sizeof(PIXEL));
+    pixel->r = r;
+    pixel->g = g;
+    pixel->b = b;
+    return pixel;
+}
+
+PIXEL* leituraPixel(FILE* f) {
+    char r, g, b;
+    fread(&b, sizeof(char), 1, f);
+    fread(&g, sizeof(char), 1, f);
+    fread(&r, sizeof(char), 1, f);
+
+    PIXEL* pixel = criarPixel(r, g, b);
+    return pixel;
+}
+
+void printPixel(PIXEL* pixel) {
+    printf("(%hhx, %hhx, %hhx), ", pixel->r, pixel->g, pixel->b);
+}
+
 BMPFILEHEADER* criarFileHeader(unsigned short bfType, unsigned int bfSize, unsigned short bfReserved1, unsigned short bfReserved2, unsigned int bfOffBits) {
     BMPFILEHEADER* fileHeader = (BMPFILEHEADER*) malloc(sizeof(BMPFILEHEADER));
     fileHeader->bfType = bfType;
@@ -46,6 +72,10 @@ BMPFILEHEADER* leituraFileHeader(FILE* arq) {
     return criarFileHeader(bfType, bfSize, bfReserved1, bfReserved2, bfOffBits);
 }
 
+void printFileHeader(BMPFILEHEADER* fileHeader) {
+    printf("bfType: %hu\nbfSize: %hu\nbfReserved1: %hu\nbfReserved2: %hu\nbfOffBits: %hu\n", fileHeader->bfType, fileHeader->bfSize, fileHeader->bfReserved1, fileHeader->bfReserved2, fileHeader->bfOffBits);
+}
+
 BMPINFOHEADER* criarInfoHeader(unsigned int biSize, int biWidth, int biHeight, unsigned short biPlanes, unsigned short biBitCount, unsigned int biCompression, unsigned int biSizeImage, int biXPelsPerMeter, int biYPelsPerMeter, unsigned int biClrUsed, unsigned int biClrImportant) {
     BMPINFOHEADER* infoHeader = (BMPINFOHEADER*) malloc(sizeof(BMPINFOHEADER));
 
@@ -57,8 +87,8 @@ BMPINFOHEADER* criarInfoHeader(unsigned int biSize, int biWidth, int biHeight, u
     biCompression = biCompression;
     biSizeImage = biSizeImage;
     infoHeader->biXPelsPerMeter = biXPelsPerMeter;
-    infoHeader->biYpelsPerMeter = biYPelsPerMeter;
-    infoHeader->biClrUsed = biClrUSed;
+    infoHeader->biYPelsPerMeter = biYPelsPerMeter;
+    infoHeader->biClrUsed = biClrUsed;
     infoHeader->biClrImportant = biClrImportant;
 
     return infoHeader;
@@ -84,3 +114,9 @@ BMPINFOHEADER* leituraInfoHeader(FILE* arq) {
     
     return criarInfoHeader(biSize, biWidth, biHeight, biPlanes, biBitCount, biCompression, biSizeImage, biXPelsPerMeter, biYPelsPerMeter, biClrUsed, biClrImportant);
 }
+
+// mudar depois
+void printInfoHeader(BMPINFOHEADER* infoHeader) {
+    printf("w: %d, h: %d, imp: %hu\n", infoHeader->biWidth, infoHeader->biHeight, infoHeader->biClrImportant);
+}
+
