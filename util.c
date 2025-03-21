@@ -45,3 +45,42 @@ BMPFILEHEADER* leituraFileHeader(FILE* arq) {
 
     return criarFileHeader(bfType, bfSize, bfReserved1, bfReserved2, bfOffBits);
 }
+
+BMPINFOHEADER* criarInfoHeader(unsigned int biSize, int biWidth, int biHeight, unsigned short biPlanes, unsigned short biBitCount, unsigned int biCompression, unsigned int biSizeImage, int biXPelsPerMeter, int biYPelsPerMeter, unsigned int biClrUsed, unsigned int biClrImportant) {
+    BMPINFOHEADER* infoHeader = (BMPINFOHEADER*) malloc(sizeof(BMPINFOHEADER));
+
+    infoHeader->biSize = biSize;
+    infoHeader->biWidth = biWidth;
+    infoHeader->biHeight = biHeight;
+    infoHeader->biPlanes = biPlanes;
+    infoHeader->biBitCount = biBitCount;
+    biCompression = biCompression;
+    biSizeImage = biSizeImage;
+    infoHeader->biXPelsPerMeter = biXPelsPerMeter;
+    infoHeader->biYpelsPerMeter = biYPelsPerMeter;
+    infoHeader->biClrUsed = biClrUSed;
+    infoHeader->biClrImportant = biClrImportant;
+
+    return infoHeader;
+}
+
+BMPINFOHEADER* leituraInfoHeader(FILE* arq) {
+    unsigned int biSize;
+    int biWidth, biHeight, biXPelsPerMeter, biYPelsPerMeter;
+    unsigned short biPlanes, biBitCount;
+    unsigned int biClrUsed, biClrImportant, biCompression, biSizeImage; 
+
+    fread(&biSize, sizeof(unsigned int), 1, arq);
+    fread(&biWidth, sizeof(int), 1, arq);
+    fread(&biHeight, sizeof(int), 1, arq);
+    fread(&biPlanes, sizeof(unsigned short), 1, arq);
+    fread(&biBitCount, sizeof(unsigned short), 1, arq);
+    fread(&biCompression, sizeof(unsigned int), 1, arq);
+    fread(&biSizeImage, sizeof(unsigned int), 1, arq);
+    fread(&biXPelsPerMeter, sizeof(int), 1, arq);
+    fread(&biYPelsPerMeter, sizeof(int), 1, arq);
+    fread(&biClrUsed, sizeof(unsigned int), 1, arq);
+    fread(&biClrImportant, sizeof(unsigned int), 1, arq);
+    
+    return criarInfoHeader(biSize, biWidth, biHeight, biPlanes, biBitCount, biCompression, biSizeImage, biXPelsPerMeter, biYPelsPerMeter, biClrUsed, biClrImportant);
+}
