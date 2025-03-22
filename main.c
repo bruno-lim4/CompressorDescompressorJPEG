@@ -5,9 +5,10 @@ int main() {
     BMPFILEHEADER* fileHeader = leituraFileHeader(img);
     BMPINFOHEADER* infoHeader = leituraInfoHeader(img);
     
+    printFileHeader(fileHeader);
     printInfoHeader(infoHeader);
 
-    for(int i = 0; i < 10000; i++) {
+    for(int i = 0; i < 10; i++) {
         PIXEL* pixel = leituraPixel(img);
         printPixel(pixel);
     }
