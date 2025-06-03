@@ -14,21 +14,28 @@ struct imagem_ {
 };
 
 IMAGEM* criarImagem(FILE* f) {
+    // cria imagem
     IMAGEM* img = (IMAGEM*) malloc(sizeof(IMAGEM));
+
+    // pega o cabecalho
     img->fileHeader = leituraFileHeader(f);
     img->infoHeader = leituraInfoHeader(f);
 
+    // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
     img->h = get_biHeight(img->infoHeader);
 
     int qtd_pixels = img->w*img->h;
 
+    // aloca matrizes r,g,b
     alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
     alocarMatriz_unsignedChar(&(img->g), img->h, img->w);
     alocarMatriz_unsignedChar(&(img->b), img->h, img->w);
 
+    // aloca luminancia
     alocarMatriz_double(&(img->y), img->h, img->w);
 
+    // le r,g,b e ja calcula luminancia
     for(int i = 0; i < img->h; i++) {
         for(int j = 0; j < img->w; j++) {
             fread(&((img->b)[i][j]), sizeof(unsigned char), 1, f);
@@ -39,14 +46,18 @@ IMAGEM* criarImagem(FILE* f) {
         }
     }
 
+    // calcula as dimensoes que cb,cr vao ter
+    // e "corrige" para ser multiplo de 8
     img->cbcr_w = (img->w)/2 + (8 - ((img->w)/2)%8);
     img->cbcr_h = (img->h)/2 + (8 - ((img->h)/2)%8);
 
+    // aloca essas matrizes
     alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
     alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
 
     int new_i = 0;
 
+    // calcula cb,cr (faz o downsampling)
     for(int i = 0; i < (img->h); i+=2) {
         int new_j = 0;
         for(int j = 0; j < (img->w); j+=2) {
@@ -61,7 +72,10 @@ IMAGEM* criarImagem(FILE* f) {
         new_i++;
     }
 
-    // conserta o tamanho de cb, cr pra ficar multiplo de 8
+
+    // agora copia linhas/coluna para preencher 
+    // o espaço que falta (pq precisa ser mult de 8)
+
     int old_w = (img->w)/2;
     int old_h = (img->h)/2;
 
@@ -96,22 +110,21 @@ void comprimeImagem(IMAGEM* img) {
 
     for(int i = 0; i < (img->h); i += 8) {
         for(int j = 0; j < (img->w); j += 8) {
-            BLOCO* bloco1 = criarBloco(((img->y)[i])+j, 'L');
+            BLOCO* bloco1 = criarBloco(img->y, i, j, 'L');
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
-            printf("%d, %d/ ", i, j);
-            printBloco(bloco1_dct);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
         }
     }
+    
     for(int i = 0; i < img->cbcr_h; i += 8) {
         for(int j = 0; j < img->cbcr_w; j += 8) {
-            BLOCO* bloco1 = criarBloco(img->cb + img->cbcr_w*i + j, 'B');
+            BLOCO* bloco1 = criarBloco(img->cb, i, j, 'B');
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
 
-            BLOCO* bloco2 = criarBloco(img->cr + img->cbcr_w*i + j, 'R');
+            BLOCO* bloco2 = criarBloco(img->cr, i, j, 'R');
             BLOCO* bloco2_dct = aplicaDCT(bloco2);
             BLOCO* bloco2_qtz = aplicaQuantizacao(bloco2_dct);
             int* vetor_final2 = pega_zigzag(bloco2_qtz);

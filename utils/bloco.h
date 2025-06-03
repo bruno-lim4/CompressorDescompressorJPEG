@@ -7,7 +7,7 @@ typedef struct bloco_ BLOCO;
 #include <stdio.h>
 #include <stdlib.h>
 
-BLOCO* criarBloco(double** pos, char tipo);
+BLOCO* criarBloco(double** pos, int start_i, int start_j, char tipo);
 void printBloco(BLOCO *b);
 void desalocarBloco(BLOCO** bloco);
 BLOCO* aplicaDCT(BLOCO* bloco);

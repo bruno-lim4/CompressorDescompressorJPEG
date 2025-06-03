@@ -3,7 +3,7 @@
 
 
 int main() {
-    FILE* img_file = fopen("./imgs/bmp_tresCores.bmp", "r");
+    FILE* img_file = fopen("./imgs/carneiro.bmp", "r");
     IMAGEM* img = criarImagem(img_file);
     comprimeImagem(img);
 
