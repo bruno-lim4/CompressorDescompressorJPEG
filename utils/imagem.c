@@ -168,15 +168,95 @@ void escreverImagem(FILE* f, IMAGEM* img) {
     //printf("%lf / %lf\n", menor, maior);
 }
 
+// Função para debug.
 void printarImagem(IMAGEM* img) {
-    printFileHeader(img->fileHeader);
-    printInfoHeader(img->infoHeader);
-    /*
-    for(int i = 0; i < img->h/2; i++) {
-        for(int j = 0; j < img->w/2; j++) {
-            printf("(%lf %lf %lf)(%d, %d), ", (img->y)[i][j], (img->cb)[i][j], (img->cr)[i][j], i, j);
+    printf("====IMPRESSÃO DA IMAGEM====\n%d % d\n", img->cbcr_h, img->cbcr_w);
+
+    for(int i = 0; i < img->h; i++){
+        for(int j = 0; j < img->w; j++){
+            printf("%4d %.4d %4d\n", (img->r)[i][j], (img->g)[i][j], (img->b)[i][j]);
+        }
+        printf("\n");
+    }
+
+    return;
+}
+
+//Esboço das funções a serem implementadas.
+
+
+//Construção da struct IMAGEM resultante da descompressão.
+//Recebe um vetor com todos os blocos que compõem a imagem.
+//PRECISA DE VETORES PRA Y, CB E CR SEPARADAMENTE.
+//FALTA TRANSFORMAR PARA RGB.
+IMAGEM* construirImagem(double ***blocos, int img_h, int img_w){
+    IMAGEM* img = (IMAGEM*) malloc(sizeof(IMAGEM));
+    img->h = img_h;
+    img->w = img_w;
+    img->cbcr_h = img->h/2; //Ignora o preenchimento feito para ficar múltiplo de 8.
+    img->cbcr_w = img->w/2;
+
+    alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
+    alocarMatriz_unsignedChar(&(img->g), img->h, img->w);
+    alocarMatriz_unsignedChar(&(img->b), img->h, img->w);
+
+    alocarMatriz_double(&(img->y), img->h, img->w);
+    alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
+    alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
+
+    // Preenchendo as matrizes Cb e Cr.
+    for(int i = 0; i < img->cbcr_h; i++){ // Índice percorrendo as linhas da imagem.
+        for(int j = 0; j < img->cbcr_w; j++){ // Índice percorrendo as colunas da imagem.
+            int index = (img->cbcr_w/8) * (i/8) + (j/8); //Índice para percorrer o vetor de blocos.
+            //printf("(img->cb)[%d][%d] = %5.0lf\n", i, j, (blocos[index])[i % 8][j % 8]);
+            (img->cb)[i][j] = (blocos[index])[i % 8][j % 8];
+            (img->cr)[i][j] = (blocos[index])[i % 8][j % 8];
         }
     }
-    */
-    return;
+
+
+/*
+    // Preenchendo a matriz Y.
+    for(int i = 0; i < img->h; i++){
+        printf("i: %d\n", i);
+        for(int j = 0; j < img->w; j++){
+            int index = (img_w/8) * (i/8) + (j/8);
+            (img->y)[i][j] = (blocos[index])[i % 8][j % 8];
+        }
+    }
+*/
+
+    // Transformação para RGB.
+    int rgb_i = 0, rgb_j = 0;
+    printf("==== TRANSFORMAÇÃO PARA RGB ====\n\nDimensões da imagem: %d x %d\ncbcr_h e _w: %d %d\n\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
+    for(int i = 0; i < img->cbcr_h; i++){
+        rgb_j = 0;
+        for(int j = 0; j < img->cbcr_w; j++){
+            printf("i: %d j: %d\n", i, j);
+            (img->r)[rgb_i][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j];
+            (img->r)[rgb_i][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j+1];
+            (img->r)[rgb_i+1][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j];
+            (img->r)[rgb_i+1][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j+1];
+
+            (img->b)[rgb_i][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j];
+            (img->b)[rgb_i][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j+1];
+            (img->b)[rgb_i+1][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j];
+            (img->b)[rgb_i+1][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j+1];
+
+            (img->g)[rgb_i][rgb_j] = (img->y)[rgb_i][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            (img->g)[rgb_i][rgb_j+1] = (img->y)[rgb_i][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            (img->g)[rgb_i+1][rgb_j] = (img->y)[rgb_i+1][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            (img->g)[rgb_i+1][rgb_j+1] = (img->y)[rgb_i+1][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+
+            rgb_j += 2;
+        }
+        rgb_i += 2;
+    }
+
+    printf("Saiu da função construirImagem()\n");
+    return img;
+}
+
+int get_img_w(IMAGEM *img){
+    return img->w;
 }

@@ -1,7 +1,7 @@
 all: main
 
 main: consts util bloco header imagem
-	gcc -std=c99 compressor.c -o compressor ./utils/header.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o
+	gcc -std=c99 descompressor.c -o descompressor ./utils/header.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o
 
 imagem:
 	gcc -c ./utils/imagem.c -o ./utils/imagem.o
@@ -19,4 +19,4 @@ consts:
 	gcc -c ./utils/consts.c -o ./utils/consts.o
 
 clean:
-	rm compressor ./utils/*.o
+	rm descompressor ./utils/*.o

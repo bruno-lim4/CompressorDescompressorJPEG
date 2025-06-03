@@ -8,6 +8,10 @@ struct bloco_ {
     char tipo; // L para luminancia, B para Cb, e R para CR
 };
 
+double getPosBloco(BLOCO *b, int i, int j){
+    return (b->m)[i][j];
+}
+
 BLOCO* criarBloco(double** pos, int start_i, int start_j, char tipo) {
     // cria e aloca BLOCO 8x8
     BLOCO* bloco = (BLOCO*) malloc(sizeof(BLOCO));
@@ -77,6 +81,22 @@ BLOCO* aplicaQuantizacao(BLOCO* bloco){
     return blocoQuantizado;
 }
 
+BLOCO* desfazQuantizacao(BLOCO* blocoQuantizado){
+    BLOCO* bloco = criarBloco(blocoQuantizado->m, blocoQuantizado->tipo);
+    int k = 1 //taxa de compressão.
+
+    for(int i = 0; i < 8; i++)
+        for(int j = 0; j < 8; j++){
+            if(bloco->tipo == 'L')
+                (bloco->m)[i][j] *= k*quant_luminancia[i][j];
+            else
+                (bloco->m)[i][j] *= k*quant_crominancia[i][j];
+        }
+
+    return bloco;
+}
+
+// Constrói o vetor DC + AC a partir de um bloco.
 int* pega_zigzag(BLOCO* bloco) {
     int* vetor = (int*) malloc(sizeof(int)*64);
     int sobe = 1;
@@ -119,4 +139,50 @@ int* pega_zigzag(BLOCO* bloco) {
     }
 
     return vetor;
+}
+
+// Constrói o bloco a partir de um vetor.
+int* monta_bloco(int* vetor, char tipo) {
+    BLOCO* bloco = (BLOCO*) malloc(sizeof(BLOCO));
+    bloco->tipo = tipo;
+    int sobe = 1;
+    int cnt = 0;
+
+    // parte triangular superior
+    for(int k = 0; k < 8; k++) {
+        if (sobe) {
+            // inicio: (k, 0)
+            // fim: (0, k)
+            for (int j = 0; j <= k; j++) {
+                (bloco->m)[k-j][0+j] = vetor[cnt];
+                cnt++;
+            }
+        } else {
+            for (int j = 0; j <= k; j++) {
+                (bloco->m)[0+j][k-j] = vetor[cnt];
+                cnt++;
+            }
+        }
+        sobe ^= 1;
+    }
+
+    // parte triangular inferior
+    for(int k = 1; k < 8; k++) {
+        if (sobe) {
+            // inicio: (7, k)
+            // fim: (k, 7)
+            for (int j = 0; j < 8-k; j++) {
+                (bloco->m)[7-j][k+j] = vetor[cnt];
+                cnt++;
+            }
+        } else {
+            for (int j = 0; j < 8-k; j++) {
+                (bloco->m)[k+j][7-j] = vetor[cnt];
+                cnt++;
+            }
+        }
+        sobe ^= 1;
+    }
+
+    return bloco;
 }

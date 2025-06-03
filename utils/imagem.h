@@ -8,9 +8,12 @@ typedef struct imagem_ IMAGEM;
 #include "header.h"
 #include "util.h"
 
+int get_img_w(IMAGEM *img);
 IMAGEM* criarImagem(FILE* f);
 void printarImagem(IMAGEM* img);
 void escreverImagem(FILE* f, IMAGEM* img);
 void comprimeImagem(IMAGEM* img);
+IMAGEM* construirImagem(double ***blocos, int img_h, int img_w);
+void printarImagem(IMAGEM* img);
 
 #endif
