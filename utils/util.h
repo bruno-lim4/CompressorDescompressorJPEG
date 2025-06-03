@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <cstdint>
+#include <stdint.h>
 
 void alocarMatriz_double(double*** m, int h, int w);
 void alocarMatriz_unsignedChar(unsigned char*** m, int h, int w);
@@ -17,7 +17,7 @@ void desalocarMatriz_unsignedChar(unsigned char ***m, int h , int w);
 
 // relacionados a gravar dados
 
-uint32_t grava_infoDC(int value);
+uint32_t grava_infoDC(int value, int* qtd_bits);
 uint32_t grava_infoAC(int value);
 
 #endif

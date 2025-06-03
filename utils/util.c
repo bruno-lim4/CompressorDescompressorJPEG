@@ -95,7 +95,7 @@ double** matrizTransposta(double** a, int n) {
     return res; 
 }
 
-void print_binary(int value, int bits = 32) {
+void print_binary(int value, int bits) {
     for(int i = bits-1; i >= 0; i--) {
         printf("%d", value&(1<<i) ? 1 : 0);
     }
