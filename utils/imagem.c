@@ -108,15 +108,22 @@ IMAGEM* criarImagem(FILE* f) {
 void comprimeImagem(IMAGEM* img) {
     printf("(%d, %d)", (img->h), img->w);
 
+    int ultimo_dc = 0;
+
     for(int i = 0; i < (img->h); i += 8) {
         for(int j = 0; j < (img->w); j += 8) {
             BLOCO* bloco1 = criarBloco(img->y, i, j, 'L');
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
+
+            // ja guarda no arquivo
+            int dif = vetor_final[0]-ultimo_dc;
+            ultimo_dc = vetor_final[0];
+            
         }
     }
-    
+
     for(int i = 0; i < img->cbcr_h; i += 8) {
         for(int j = 0; j < img->cbcr_w; j += 8) {
             BLOCO* bloco1 = criarBloco(img->cb, i, j, 'B');
