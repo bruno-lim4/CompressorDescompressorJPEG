@@ -106,7 +106,7 @@ IMAGEM* criarImagem(FILE* f) {
     return img;
 }
 
-void codifica_gravaBloco(GRAVADOR* gravador, int* vetor, int valor_difDC) {
+void codifica_gravaVetor(GRAVADOR* gravador, int* vetor, int valor_difDC) {
     // grava DC
     int qtd_DC;
     uint32_t codificaDC = codifica_infoDC(valor_difDC, &qtd_DC);
@@ -153,7 +153,7 @@ void comprimeImagem(IMAGEM* img, FILE* f) {
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
-            codifica_gravaBloco(gravador, vetor_final, vetor_final[0]-ultimo_dc);
+            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
             ultimo_dc = vetor_final[0];
         }
     }
@@ -166,7 +166,7 @@ void comprimeImagem(IMAGEM* img, FILE* f) {
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
-            codifica_gravaBloco(gravador, vetor_final, vetor_final[0]-ultimo_dc);
+            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
             ultimo_dc = vetor_final[0];
         }
     }
@@ -179,7 +179,7 @@ void comprimeImagem(IMAGEM* img, FILE* f) {
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
-            codifica_gravaBloco(gravador, vetor_final, vetor_final[0]-ultimo_dc);
+            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
             ultimo_dc = vetor_final[0];
         }
     }
