@@ -95,3 +95,53 @@ double** matrizTransposta(double** a, int n) {
     return res; 
 }
 
+void print_binary(int value, int bits) {
+    for(int i = bits-1; i >= 0; i--) {
+        printf("%d", value&(1<<i) ? 1 : 0);
+    }
+    printf("\n");
+}
+
+int get_qtdBits(uint32_t value) {
+    for(int i = 31; i >= 0; i--) {
+        if ((1<<i)&value) return i+1;
+    }
+    return 0;
+}
+
+// coloca (a) (qtd_b) casas a esquerda e copia b nesse espaco
+uint32_t shifta_e_grava(uint32_t a, uint32_t b, int qtd_b) {    
+    a <<= qtd_b;
+    for(int i = 0; i < qtd_b; i++) {
+        a |= (1<<i)&b;
+    }
+
+    return a;
+}
+
+uint32_t get_mantissa_comp1(int value, int* qtd) {
+    if (value > 0) {
+        for(int i = 19; i >= 0; i--) {
+            if ((1<<i)&value) {
+                *qtd = i+1;
+                return value;
+            }
+        }
+    } else if (value < 0) {
+        value = abs(value);
+        for(int i = 19; i >= 0; i--) {
+            if ((1<<i)&value) {
+                *qtd = i+1;
+                for(int k = i; k >= 0; k--) {
+                    value ^= (1<<k);
+                }
+                return value;
+            }
+        }
+    } else {
+        *qtd = 0;
+    }
+
+    return 0;
+}
+

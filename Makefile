@@ -1,7 +1,7 @@
 all: main
 
-main: consts util gravar bloco header imagem
-	gcc -std=c99 compressor.c -o compressor ./utils/header.o ./utils/gravar.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o
+main: consts util codifica bloco header imagem
+	gcc -std=c99 compressor.c -o compressor ./utils/header.o ./utils/codifica.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o
 
 imagem:
 	gcc -c ./utils/imagem.c -o ./utils/imagem.o
@@ -18,8 +18,8 @@ util:
 consts:
 	gcc -c ./utils/consts.c -o ./utils/consts.o
 
-gravar:
-	gcc -c ./utils/gravar.c -o ./utils/gravar.o
+codifica:
+	gcc -c ./utils/codifica.c -o ./utils/codifica.o
 
 clean:
 	rm compressor ./utils/*.o

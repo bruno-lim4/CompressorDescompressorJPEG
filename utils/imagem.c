@@ -104,10 +104,7 @@ IMAGEM* criarImagem(FILE* f) {
     return img;
 }
 
-//  TEM Q CONSERTAR O criarBloco()
 void comprimeImagem(IMAGEM* img) {
-    printf("(%d, %d)", (img->h), img->w);
-
     int ultimo_dc = 0;
 
     for(int i = 0; i < (img->h); i += 8) {

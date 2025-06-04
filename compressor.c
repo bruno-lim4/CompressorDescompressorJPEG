@@ -1,11 +1,11 @@
 #include "./utils/header.h"
 #include "./utils/imagem.h"
-#include "./utils/gravar.h"
+#include "./utils/codifica.h"
 
 int main() {
     // debug
     int qtd;
-    uint32_t res = grava_infoAC(15, 0, &qtd);
+    uint32_t res = codifica_infoAC(15, 0, &qtd);
     print_binary(res, qtd);
 
     FILE* img_file = fopen("./imgs/carneiro.bmp", "r");
