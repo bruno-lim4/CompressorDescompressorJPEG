@@ -1,5 +1,7 @@
 #include "imagem.h"
 #include "bloco.h"
+#include "gravador.h"
+#include "codifica.h"
 
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
@@ -104,7 +106,45 @@ IMAGEM* criarImagem(FILE* f) {
     return img;
 }
 
-void comprimeImagem(IMAGEM* img) {
+void codifica_gravaBloco(GRAVADOR* gravador, int* vetor, int valor_difDC) {
+    // grava DC
+    int qtd_DC;
+    uint32_t codificaDC = codifica_infoDC(valor_difDC, &qtd_DC);
+    gravarValor(gravador, codificaDC, qtd_DC);
+
+    int qtd_zeros = 0;
+
+    for(int i = 1; i < 64; i++) {
+        if (vetor[i] == 0) {
+            qtd_zeros++;
+        } else {
+            int valor = vetor[i];
+            int qtd_AC;
+            uint32_t codificaAC = codifica_infoAC(qtd_zeros, valor, &qtd_AC);
+            gravarValor(gravador, codificaAC, qtd_AC);
+
+            qtd_zeros = 0;
+        }
+    }
+
+    int qtd_fim;
+    uint32_t codifica_fim;
+
+    if (qtd_zeros == 0) {
+        codifica_fim = codifica_infoAC(0, 0, &qtd_fim);
+    } else {
+        codifica_fim = codifica_infoAC(-1, 0, &qtd_fim);
+    }
+
+    gravarValor(gravador, codifica_fim, qtd_fim);
+}
+
+void comprimeImagem(IMAGEM* img, FILE* f) {
+    escreverFileHeader(f, img->fileHeader);
+    escreverInfoHeader(f, img->infoHeader);
+
+    GRAVADOR* gravador = criarGravador(f);
+
     int ultimo_dc = 0;
 
     for(int i = 0; i < (img->h); i += 8) {
@@ -113,13 +153,12 @@ void comprimeImagem(IMAGEM* img) {
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
-
-            // ja guarda no arquivo
-            int dif = vetor_final[0]-ultimo_dc;
+            codifica_gravaBloco(gravador, vetor_final, vetor_final[0]-ultimo_dc);
             ultimo_dc = vetor_final[0];
-            
         }
     }
+
+    ultimo_dc = 0;
 
     for(int i = 0; i < img->cbcr_h; i += 8) {
         for(int j = 0; j < img->cbcr_w; j += 8) {
@@ -127,13 +166,25 @@ void comprimeImagem(IMAGEM* img) {
             BLOCO* bloco1_dct = aplicaDCT(bloco1);
             BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
             int* vetor_final = pega_zigzag(bloco1_qtz);
-
-            BLOCO* bloco2 = criarBloco(img->cr, i, j, 'R');
-            BLOCO* bloco2_dct = aplicaDCT(bloco2);
-            BLOCO* bloco2_qtz = aplicaQuantizacao(bloco2_dct);
-            int* vetor_final2 = pega_zigzag(bloco2_qtz);
+            codifica_gravaBloco(gravador, vetor_final, vetor_final[0]-ultimo_dc);
+            ultimo_dc = vetor_final[0];
         }
     }
+
+    ultimo_dc = 0;
+
+    for(int i = 0; i < img->cbcr_h; i += 8) {
+        for(int j = 0; j < img->cbcr_w; j += 8) {
+            BLOCO* bloco1 = criarBloco(img->cr, i, j, 'R');
+            BLOCO* bloco1_dct = aplicaDCT(bloco1);
+            BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
+            int* vetor_final = pega_zigzag(bloco1_qtz);
+            codifica_gravaBloco(gravador, vetor_final, vetor_final[0]-ultimo_dc);
+            ultimo_dc = vetor_final[0];
+        }
+    }
+
+    finalizarGravacao(gravador);
 }
 
 void escreverImagem(FILE* f, IMAGEM* img) {

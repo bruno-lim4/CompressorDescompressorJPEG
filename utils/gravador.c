@@ -51,6 +51,10 @@ void gravarValor(GRAVADOR* gravador, uint32_t value, int qtd_bits) {
     gravador->qtd_atual += qtd_bits;
 }
 
+void finalizarGravacao(GRAVADOR* gravador) {
+    if (gravador->qtd_atual > 0) salvaMascara(gravador);
+}
+
 // ao inves de gravar direto, talvez salvar cada mascara em um array na memoria e dps gravar tudo
 void salvaMascara(GRAVADOR* gravador) {
     if (gravador->qtd_atual == 32) {

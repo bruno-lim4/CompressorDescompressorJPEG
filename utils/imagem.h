@@ -11,6 +11,6 @@ typedef struct imagem_ IMAGEM;
 IMAGEM* criarImagem(FILE* f);
 void printarImagem(IMAGEM* img);
 void escreverImagem(FILE* f, IMAGEM* img);
-void comprimeImagem(IMAGEM* img);
+void comprimeImagem(IMAGEM* img, FILE* f);
 
 #endif
