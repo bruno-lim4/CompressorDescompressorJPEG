@@ -7,6 +7,8 @@ struct gravador_ {
     int qtd_atual;
 };
 
+void salvaMascara(GRAVADOR* gravador);
+
 GRAVADOR* criarGravador(FILE* f) {
     GRAVADOR* gravador = (GRAVADOR*) malloc(sizeof(GRAVADOR));
     gravador->mascara = 0;
