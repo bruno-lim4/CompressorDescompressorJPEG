@@ -18,5 +18,11 @@ util:
 consts:
 	gcc -c ./utils/consts.c -o ./utils/consts.o
 
+codifica:
+	gcc -c ./utils/codifica.c -o ./utils/codifica.o
+
+gravador:
+	gcc -c ./utils/gravador.c -o ./utils/gravador.o
+
 clean:
 	rm descompressor ./utils/*.o

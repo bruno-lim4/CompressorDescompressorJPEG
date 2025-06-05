@@ -95,13 +95,21 @@ double** matrizTransposta(double** a, int n) {
     return res; 
 }
 
-void print_binary(int value, int bits = 32) {
+void print_binary(int value, int bits) {
     for(int i = bits-1; i >= 0; i--) {
         printf("%d", value&(1<<i) ? 1 : 0);
     }
     printf("\n");
 }
 
+int get_qtdBits(uint32_t value) {
+    for(int i = 31; i >= 0; i--) {
+        if ((1<<i)&value) return i+1;
+    }
+    return 0;
+}
+
+// coloca (a) (qtd_b) casas a esquerda e copia b nesse espaco
 uint32_t shifta_e_grava(uint32_t a, uint32_t b, int qtd_b) {    
     a <<= qtd_b;
     for(int i = 0; i < qtd_b; i++) {
@@ -111,76 +119,29 @@ uint32_t shifta_e_grava(uint32_t a, uint32_t b, int qtd_b) {
     return a;
 }
 
-uint32_t grava_infoDC(int value, int* qtd_bits) {
-    int value_abs = abs(value);
-    char cat = 'X';
-
-    // pega a categoria
-    if (value_abs == 0) cat = '0';
-    else if (value_abs == 1) cat = '1';
-    else if (value_abs <= 3) cat = '2';
-    else if (value_abs <= 7) cat = '3';
-    else if (value_abs <= 15) cat = '4';
-    else if (value_abs <= 31) cat = '5';
-    else if (value_abs <= 63) cat = '6';
-    else if (value_abs <= 127) cat = '7';
-    else if (value_abs <= 255) cat = '8';
-    else if (value_abs <= 511) cat = '9';
-    else if (value_abs <= 1023) cat = 'A';
-
-    uint32_t res = 0;
-
-    // guarda o prefixo
-    switch (cat)
-    {
-    case '0':
-        res = shifta_e_grava(res, 2, 3);
-        break;
-    
-    case '1':
-        res = shifta_e_grava(res, 3, 3);
-        break;
-    
-    case '2':
-        res = shifta_e_grava(res, 4, 3);
-        break;
-    
-    case '3':
-        res = shifta_e_grava(res, 0, 2);
-        break;
-    
-    case '4':
-        res = shifta_e_grava(res, 5, 3);
-        break;
-
-    case '5':
-        res = shifta_e_grava(res, 6, 3);
-        break;
-    
-    case '6':
-        res = shifta_e_grava(res, 14, 4);
-        break;
-    
-    case '7':
-        res = shifta_e_grava(res, 30, 5);
-        break;
-    
-    case '8':
-        res = shifta_e_grava(res, 62, 6);
-        break;
-    
-    case '9':
-        res = shifta_e_grava(res, 126, 7);
-        break;
-    
-    case 'A':
-        res = shifta_e_grava(res, 254, 8);
-        break;
-    
-    default:
-        break;
+uint32_t get_mantissa_comp1(int value, int* qtd) {
+    if (value > 0) {
+        for(int i = 19; i >= 0; i--) {
+            if ((1<<i)&value) {
+                *qtd = i+1;
+                return value;
+            }
+        }
+    } else if (value < 0) {
+        value = abs(value);
+        for(int i = 19; i >= 0; i--) {
+            if ((1<<i)&value) {
+                *qtd = i+1;
+                for(int k = i; k >= 0; k--) {
+                    value ^= (1<<k);
+                }
+                return value;
+            }
+        }
+    } else {
+        *qtd = 0;
     }
 
-    // guarda a mantissa em complemento de 1
-
+    return 0;
 }
+
