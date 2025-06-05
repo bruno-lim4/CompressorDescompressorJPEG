@@ -15,5 +15,6 @@ BLOCO* aplicaDCT(BLOCO* bloco);
 BLOCO* desfazDCT(BLOCO* bloco);
 BLOCO* aplicaQuantizacao(BLOCO* bloco);
 int* pega_zigzag(BLOCO* bloco);
+int* monta_bloco(int* vetor, char tipo);
 
 #endif

@@ -182,13 +182,82 @@ void printarImagem(IMAGEM* img) {
     return;
 }
 
-//Esboço das funções a serem implementadas.
+//Esboço das funções a serem implementadas para descompressão da imagem.
 
+// Esboço da função que faz a decodificação de Huffman, codificação por diferenças e RLE
+// e retorna um vetor de blocos, que passarão pela decodificação da quantização.
+void desfazHuffmanDifRLE(){ //MIGRAR PARA A FUNÇÃO descomprimeImagem().
+    // Lê o cabeçalho e os dados adicionais e armazena as dimensões da imagem original em h e w.
+    int h, w;
+
+    // Decodifica primeiro os valores referentes a Y.
+    int num_blocos_Y = (h/8)*(w/8);
+    int* DC = (int*) malloc(sizeof(int)*num_blocos_Y);
+    int** blocos_em_vetor_Y = (int**) malloc(sizeof(int*)*num_blocos_Y); // Já vai armazenar o bloco inteiro, includindo coef. DC.
+    for(int i = 0; i < num_blocos_Y; i++){
+        blocos_em_vetor_Y[i] = (int) malloc(sizeof(int)*64);
+        blocos_em_vetor_Y[i][0] = DC[i];
+    }
+
+    
+
+
+
+    int bloco_hExtra = ((h/2) % 8) ? 1 : 0;
+    int bloco_wExtra = ((w/2) % 8) ? 1 : 0;
+    int num_blocos_CbCr = (h/2 + bloco_hExtra)*(w/2 + bloco_wExtra);
+
+
+
+    //Depois da decodificação completa do bitstream, temos um vetor de vetores,
+    //cada um contendo os dados de um bloco.
+    BLOCO* blocos = criarVetorBlocos(num_blocos_Y);
+    for(int i = 0; i < num_blocos_Y; i++){
+        blocos[i] = monta_bloco(blocos_em_vetor_Y[i], 'L');
+    }
+
+    //Nesse ponto, temos todos os blocos que compõem a matriz Y.
+    //DECIDIR: mandar esse vetor de Y para outras funções, terminar sua decodificação, e 
+    //seguir para Cb e Cr nessa mesma função.
+    //OU retornar esse vetor, e fazer outra função que decodificará Cb e Cr do zero.
+    //OUTRA IDEIA (provavelmente a melhor): a main deve simplesmente chamar uma função 'descomprimeImagem()', e essa
+    //função simplesmente retorna a imagem pronta.
+
+}
+
+IMAGEM* descomprimeImagem(file *f){
+    //FLUXO DA FUNÇÃO:
+    //Lê cabeçalho e dados adicionais.
+    /*...Assumindo que a ordem no arquivo seja DC(Y), AC(Y), DC(Cb), AC(Cb), DC(Cr), AC(Cr)...*/
+    //Decodifica Huffman e obtém os DC de Y; guarda-os em um vetor.
+    //Decodifica Huffman e obtém os AC de Y; guarda-os em um vetor de vetores junto com os DC.
+    //Transforma cada vetor em um bloco; tem-se, agora, um vetor de blocos.
+    //Passa o vetor a cada etapa seguinte.
+    //Faz o mesmo para Cb e Cr.
+    //Da forma que está no momento, passa os vetores de blocos para a função construirImagem(), que
+    //transformará para RGB e guardará os dados numa struct IMAGEM.
+    //Aí é só gravar os dados num arquivo .bmp :).
+
+}
+
+double* desfazCodDiferencial(double *cod, int tam){
+    double* res = malloc(sizeof(double)*tam);
+
+    res[0] = cod[0];
+    for(int i = 1; i < tam; i++){
+        res[i] = res[i-1] + cod[i];
+    }
+
+    return res;
+}
+
+double* desfazRLE(){
+
+}
 
 //Construção da struct IMAGEM resultante da descompressão.
 //Recebe um vetor com todos os blocos que compõem a imagem.
 //PRECISA DE VETORES PRA Y, CB E CR SEPARADAMENTE.
-//FALTA TRANSFORMAR PARA RGB.
 IMAGEM* construirImagem(double ***blocos, int img_h, int img_w){
     IMAGEM* img = (IMAGEM*) malloc(sizeof(IMAGEM));
     img->h = img_h;
