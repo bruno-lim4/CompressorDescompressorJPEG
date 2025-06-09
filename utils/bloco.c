@@ -148,10 +148,10 @@ BLOCO* monta_bloco(int* vetor, char tipo) {
     bloco->tipo = tipo;
     int sobe = 1;
     int cnt = 0;
-    printf("na monta_bloco\n");
+    //printf("na monta_bloco\n");
     // parte triangular superior
     for(int k = 0; k < 8; k++) {
-        printf("k: %d\n", k);
+        //printf("k: %d\n", k);
         if (sobe) {
             // inicio: (k, 0)
             // fim: (0, k)

@@ -222,6 +222,9 @@ void escreverImagem(FILE* f, IMAGEM* img) {
 void printarImagem(IMAGEM* img) {
     printf("====IMPRESSÃO DA IMAGEM====\n%d %d %d %d\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
 
+    printFileHeader(img->fileHeader);
+    printInfoHeader(img->infoHeader);
+
     for(int i = 0; i < img->h; i++){
         for(int j = 0; j < img->w; j++){
             printf("%4d %.4d %4d\n", (img->r)[i][j], (img->g)[i][j], (img->b)[i][j]);
@@ -236,13 +239,17 @@ void printarImagem(IMAGEM* img) {
 IMAGEM* descomprimeImagem(FILE* in, FILE* out){    
     // Lê o cabeçalho e os dados adicionais e armazena as dimensões da imagem original em h e w.
     IMAGEM* img = malloc(sizeof(IMAGEM));
-    int h, w; //tirar os valores.
-    img->h = h;
-    img->w = w;
+
+    // Mudar depois.
+    img->fileHeader = leituraFileHeader(in);
+    img->infoHeader = leituraInfoHeader(in);
+
+    // pega as dimensoes no cabecalho
+    img->w = get_biWidth(img->infoHeader);
+    img->h = get_biHeight(img->infoHeader);
 
     // Número de blocos 8x8 da componente Y.
-    int num_blocos_Y = (h/8)*(w/8);
-
+    int num_blocos_Y = (img->h/8)*(img->w/8);
 
     int** blocos_em_vetor_Y = (int**) malloc(sizeof(int*)*num_blocos_Y);
     for(int i = 0; i < num_blocos_Y; i++){
@@ -250,15 +257,15 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     }
 
     // h/2 e w/2 podem não ser múltiplos de 8. Se não for, tem que somar 1 a (h/2)/8 e (w/2)/8 pra calcular número de blocos.
-    int bloco_hExtra = ((h/2) % 8) ? 1 : 0;
-    int bloco_wExtra = ((w/2) % 8) ? 1 : 0;
-    int num_blocos_CbCr = (h/2/8 + bloco_hExtra)*(w/2/8 + bloco_wExtra);
+    int bloco_hExtra = ((img->h/2) % 8) ? 1 : 0;
+    int bloco_wExtra = ((img->w/2) % 8) ? 1 : 0;
+    int num_blocos_CbCr = (img->h/2/8 + bloco_hExtra)*(img->w/2/8 + bloco_wExtra);
     // Tamanho das matrizes Cb e Cr.
     img->cbcr_h = (img->h/2) + 8*bloco_hExtra;
     img->cbcr_w = (img->w/2) + 8*bloco_wExtra;
 
-    printf("h: %d w: %d cbcr_h: %d cbcr_w: %d\n\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
-    printf("Número de blocos Y: %d Número de blocos CbCr: %d\n\n", num_blocos_Y, num_blocos_CbCr);
+    //printf("h: %d w: %d cbcr_h: %d cbcr_w: %d\n\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
+    //printf("Número de blocos Y: %d Número de blocos CbCr: %d\n\n", num_blocos_Y, num_blocos_CbCr);
 
 
     int** blocos_em_vetor_Cb = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
@@ -287,13 +294,13 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
     alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
 
-    printf("Matrizes alocadas\n\n");
+    //printf("Matrizes alocadas\n\n");
 
     BLOCO *bloco, *quantizacao_inversa, *DCT_inversa;
     for(int i = 0; i < num_blocos_Y; i++){
-        printf("número do bloco: %d\n\n", i);
+        //printf("número do bloco: %d\n\n", i);
         bloco = monta_bloco(blocos_em_vetor_Y[i], 'Y');
-        printf("bloquin montado\n\n");
+        //printf("bloquin montado\n\n");
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
         gravaBloco(img->y, (i*8)/img->w, (i*8)%img->w, DCT_inversa);
@@ -304,7 +311,7 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         //desalocarBloco(&DCT_inversa);
     }
 
-    printf("Matriz Y preenchida\n\n");
+    //printf("Matriz Y preenchida\n\n");
 
     for(int i = 0; i < num_blocos_CbCr; i++){
         bloco = monta_bloco(blocos_em_vetor_Cb[i], 'B');
@@ -316,8 +323,8 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         //desalocarBloco(&quantizacao_inversa);
         //desalocarBloco(&DCT_inversa);
     }
-    printf("Matriz Cb preenchida\n\n");
-    printf("Matriz Cb preenchida\n\n");
+    //printf("Matriz Cb preenchida\n\n");
+    //printf("Matriz Cb preenchida\n\n");
 
     for(int i = 0; i < num_blocos_CbCr; i++){
         bloco = monta_bloco(blocos_em_vetor_Cr[i], 'R');
@@ -330,8 +337,8 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         //desalocarBloco(&DCT_inversa);
     }
 
-    printf("Matriz Cr preenchida\n\n");
-    printf("Matriz Cr preenchida\n\n");
+    //printf("Matriz Cr preenchida\n\n");
+    //printf("Matriz Cr preenchida\n\n");
 
 
     // Transformação para RGB.
@@ -373,25 +380,22 @@ double* desfazCodDiferencial(double *cod, int tam){
     return res;
 }
 
-double* desfazRLE(){
 
-}
+void salvarBMP(FILE* f, IMAGEM* img) {
+    // Escreve cabeçalhos
+    fwrite(img->fileHeader, 14, 1, f);
+    fwrite(img->infoHeader, 40, 1, f);
 
-//Construção da struct IMAGEM resultante da descompressão.
-//Recebe um vetor com todos os blocos que compõem a imagem.
-//PRECISA DE VETORES PRA Y, CB E CR SEPARADAMENTE.
-IMAGEM* construirImagem(double ***blocos, int img_h, int img_w){
-    IMAGEM* img = (IMAGEM*) malloc(sizeof(IMAGEM));
-    img->h = img_h;
-    img->w = img_w;
-    img->cbcr_h = img->h/2; //Ignora o preenchimento feito para ficar múltiplo de 8.
-    img->cbcr_w = img->w/2;
+    int largura = img->w;
+    int altura = img->h;
 
-
-
-    return img;
-}
-
-int get_img_w(IMAGEM *img){
-    return img->w;
+    for (int i = altura - 1; i >= 0; i--) { // BMP escreve de baixo pra cima
+        for (int j = 0; j < largura; j++) {
+            unsigned char pixel[3];
+            pixel[0] = img->b[i][j]; // Azul
+            pixel[1] = img->g[i][j]; // Verde
+            pixel[2] = img->r[i][j]; // Vermelho
+            fwrite(pixel, 1, 3, f);
+        }
+    }
 }

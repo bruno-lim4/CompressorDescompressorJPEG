@@ -354,7 +354,7 @@ NO_AC* criarNo_AC(int runlength, int size){
     NO_AC* no = malloc(sizeof(NO_AC));
 
     no->esquerda = no->direita = NULL;
-    no->ehFolha = 1;
+    no->ehFolha = 0;
     no->runlength = runlength;
     no->size = size;
 
@@ -367,16 +367,12 @@ void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, NO_AC* no){
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
         if (bit == 0) {
             if (!atual->esquerda) {
-                atual->esquerda = malloc(sizeof(NO_AC));
-                atual->esquerda->esquerda = atual->esquerda->direita = NULL;
-                atual->esquerda->ehFolha = 0;
+                atual->esquerda = criarNo_AC(0, 0);
             }
             atual = atual->esquerda;
         } else {
             if (!atual->direita) {
-                atual->direita = malloc(sizeof(NO_AC));
-                atual->direita->esquerda = atual->direita->direita = NULL;
-                atual->direita->ehFolha = 0;
+                atual->direita = criarNo_AC(0, 0);
             }
             atual = atual->direita;
         }
