@@ -82,8 +82,8 @@ BLOCO* aplicaQuantizacao(BLOCO* bloco){
 }
 
 BLOCO* desfazQuantizacao(BLOCO* blocoQuantizado){
-    BLOCO* bloco = criarBloco(blocoQuantizado->m, blocoQuantizado->tipo);
-    int k = 1 //taxa de compressão.
+    BLOCO* bloco = criarBloco(blocoQuantizado->m, 0, 0, blocoQuantizado->tipo);
+    int k = 1; //taxa de compressão.
 
     for(int i = 0; i < 8; i++)
         for(int j = 0; j < 8; j++){
@@ -142,24 +142,26 @@ int* pega_zigzag(BLOCO* bloco) {
 }
 
 // Constrói o bloco a partir de um vetor.
-int* monta_bloco(int* vetor, char tipo) {
+BLOCO* monta_bloco(int* vetor, char tipo) {
     BLOCO* bloco = (BLOCO*) malloc(sizeof(BLOCO));
+    alocarMatriz_double(&(bloco->m), 8, 8);
     bloco->tipo = tipo;
     int sobe = 1;
     int cnt = 0;
-
+    printf("na monta_bloco\n");
     // parte triangular superior
     for(int k = 0; k < 8; k++) {
+        printf("k: %d\n", k);
         if (sobe) {
             // inicio: (k, 0)
             // fim: (0, k)
             for (int j = 0; j <= k; j++) {
-                (bloco->m)[k-j][0+j] = vetor[cnt];
+                (bloco->m)[k-j][0+j] = (double) vetor[cnt];
                 cnt++;
             }
         } else {
             for (int j = 0; j <= k; j++) {
-                (bloco->m)[0+j][k-j] = vetor[cnt];
+                (bloco->m)[0+j][k-j] = (double) vetor[cnt];
                 cnt++;
             }
         }
@@ -185,4 +187,10 @@ int* monta_bloco(int* vetor, char tipo) {
     }
 
     return bloco;
+}
+
+void gravaBloco(double **m, int start_i, int start_j, BLOCO *b){
+    for(int i = 0; i < 8; i++)
+        for(int j = 0; j < 8; j++)
+            m[start_i+i][start_j+j] = (b->m)[i][j];
 }

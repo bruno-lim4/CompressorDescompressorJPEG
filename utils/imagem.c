@@ -2,6 +2,8 @@
 #include "bloco.h"
 #include "gravador.h"
 #include "codifica.h"
+#include "decodifica.h"
+#include "leitor.h"
 
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
@@ -218,7 +220,7 @@ void escreverImagem(FILE* f, IMAGEM* img) {
 
 // Função para debug.
 void printarImagem(IMAGEM* img) {
-    printf("====IMPRESSÃO DA IMAGEM====\n%d % d\n", img->cbcr_h, img->cbcr_w);
+    printf("====IMPRESSÃO DA IMAGEM====\n%d %d %d %d\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
 
     for(int i = 0; i < img->h; i++){
         for(int j = 0; j < img->w; j++){
@@ -230,62 +232,134 @@ void printarImagem(IMAGEM* img) {
     return;
 }
 
-//Esboço das funções a serem implementadas para descompressão da imagem.
 
-// Esboço da função que faz a decodificação de Huffman, codificação por diferenças e RLE
-// e retorna um vetor de blocos, que passarão pela decodificação da quantização.
-void desfazHuffmanDifRLE(){ //MIGRAR PARA A FUNÇÃO descomprimeImagem().
+IMAGEM* descomprimeImagem(FILE* in, FILE* out){    
     // Lê o cabeçalho e os dados adicionais e armazena as dimensões da imagem original em h e w.
-    int h, w;
+    IMAGEM* img = malloc(sizeof(IMAGEM));
+    int h, w; //tirar os valores.
+    img->h = h;
+    img->w = w;
 
-    // Decodifica primeiro os valores referentes a Y.
+    // Número de blocos 8x8 da componente Y.
     int num_blocos_Y = (h/8)*(w/8);
-    int* DC = (int*) malloc(sizeof(int)*num_blocos_Y);
-    int** blocos_em_vetor_Y = (int**) malloc(sizeof(int*)*num_blocos_Y); // Já vai armazenar o bloco inteiro, includindo coef. DC.
+
+
+    int** blocos_em_vetor_Y = (int**) malloc(sizeof(int*)*num_blocos_Y);
     for(int i = 0; i < num_blocos_Y; i++){
-        blocos_em_vetor_Y[i] = (int) malloc(sizeof(int)*64);
-        blocos_em_vetor_Y[i][0] = DC[i];
+        blocos_em_vetor_Y[i] = (int*) malloc(sizeof(int)*64);
     }
 
-    
-
-
-
+    // h/2 e w/2 podem não ser múltiplos de 8. Se não for, tem que somar 1 a (h/2)/8 e (w/2)/8 pra calcular número de blocos.
     int bloco_hExtra = ((h/2) % 8) ? 1 : 0;
     int bloco_wExtra = ((w/2) % 8) ? 1 : 0;
-    int num_blocos_CbCr = (h/2 + bloco_hExtra)*(w/2 + bloco_wExtra);
+    int num_blocos_CbCr = (h/2/8 + bloco_hExtra)*(w/2/8 + bloco_wExtra);
+    // Tamanho das matrizes Cb e Cr.
+    img->cbcr_h = (img->h/2) + 8*bloco_hExtra;
+    img->cbcr_w = (img->w/2) + 8*bloco_wExtra;
+
+    printf("h: %d w: %d cbcr_h: %d cbcr_w: %d\n\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
+    printf("Número de blocos Y: %d Número de blocos CbCr: %d\n\n", num_blocos_Y, num_blocos_CbCr);
 
 
-
-    //Depois da decodificação completa do bitstream, temos um vetor de vetores,
-    //cada um contendo os dados de um bloco.
-    BLOCO* blocos = criarVetorBlocos(num_blocos_Y);
-    for(int i = 0; i < num_blocos_Y; i++){
-        blocos[i] = monta_bloco(blocos_em_vetor_Y[i], 'L');
+    int** blocos_em_vetor_Cb = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
+    int** blocos_em_vetor_Cr = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
+    for(int i = 0; i < num_blocos_CbCr; i++){
+        blocos_em_vetor_Cb[i] = (int*) malloc(sizeof(int)*64);
+        blocos_em_vetor_Cr[i] = (int*) malloc(sizeof(int)*64);
     }
 
-    //Nesse ponto, temos todos os blocos que compõem a matriz Y.
-    //DECIDIR: mandar esse vetor de Y para outras funções, terminar sua decodificação, e 
-    //seguir para Cb e Cr nessa mesma função.
-    //OU retornar esse vetor, e fazer outra função que decodificará Cb e Cr do zero.
-    //OUTRA IDEIA (provavelmente a melhor): a main deve simplesmente chamar uma função 'descomprimeImagem()', e essa
-    //função simplesmente retorna a imagem pronta.
+    LEITOR* leitor = criarLeitor(in);
+    int DC_anterior = -1;
+    for(int i = 0; i < num_blocos_Y; i++){
+        decodificaDC(&(blocos_em_vetor_Y[i][0]), leitor, DC_anterior);
+        DC_anterior = blocos_em_vetor_Y[i][0];
 
-}
+        for(int j = 1; j < 64; j++){
+            decodificaAC(blocos_em_vetor_Y[i], leitor);
+        }
+    }
 
-IMAGEM* descomprimeImagem(file *f){
-    //FLUXO DA FUNÇÃO:
-    //Lê cabeçalho e dados adicionais.
-    /*...Assumindo que a ordem no arquivo seja DC(Y), AC(Y), DC(Cb), AC(Cb), DC(Cr), AC(Cr)...*/
-    //Decodifica Huffman e obtém os DC de Y; guarda-os em um vetor.
-    //Decodifica Huffman e obtém os AC de Y; guarda-os em um vetor de vetores junto com os DC.
-    //Transforma cada vetor em um bloco; tem-se, agora, um vetor de blocos.
-    //Passa o vetor a cada etapa seguinte.
-    //Faz o mesmo para Cb e Cr.
-    //Da forma que está no momento, passa os vetores de blocos para a função construirImagem(), que
-    //transformará para RGB e guardará os dados numa struct IMAGEM.
-    //Aí é só gravar os dados num arquivo .bmp :).
+    alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
+    alocarMatriz_unsignedChar(&(img->g), img->h, img->w);
+    alocarMatriz_unsignedChar(&(img->b), img->h, img->w);
 
+    alocarMatriz_double(&(img->y), img->h, img->w);
+    alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
+    alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
+
+    printf("Matrizes alocadas\n\n");
+
+    BLOCO *bloco, *quantizacao_inversa, *DCT_inversa;
+    for(int i = 0; i < num_blocos_Y; i++){
+        printf("número do bloco: %d\n\n", i);
+        bloco = monta_bloco(blocos_em_vetor_Y[i], 'Y');
+        printf("bloquin montado\n\n");
+        quantizacao_inversa = desfazQuantizacao(bloco);
+        DCT_inversa = desfazDCT(quantizacao_inversa);
+        gravaBloco(img->y, (i*8)/img->w, (i*8)%img->w, DCT_inversa);
+
+        //Tá dando double free().
+        //desalocarBloco(&bloco);
+        //desalocarBloco(&quantizacao_inversa);
+        //desalocarBloco(&DCT_inversa);
+    }
+
+    printf("Matriz Y preenchida\n\n");
+
+    for(int i = 0; i < num_blocos_CbCr; i++){
+        bloco = monta_bloco(blocos_em_vetor_Cb[i], 'B');
+        quantizacao_inversa = desfazQuantizacao(bloco);
+        DCT_inversa = desfazDCT(quantizacao_inversa);
+        gravaBloco(img->cb, (i*8)/img->cbcr_w, (i*8)%img->cbcr_w, DCT_inversa);
+
+        //desalocarBloco(&bloco);
+        //desalocarBloco(&quantizacao_inversa);
+        //desalocarBloco(&DCT_inversa);
+    }
+    printf("Matriz Cb preenchida\n\n");
+    printf("Matriz Cb preenchida\n\n");
+
+    for(int i = 0; i < num_blocos_CbCr; i++){
+        bloco = monta_bloco(blocos_em_vetor_Cr[i], 'R');
+        quantizacao_inversa = desfazQuantizacao(bloco);
+        DCT_inversa = desfazDCT(quantizacao_inversa);
+        gravaBloco(img->cr, (i*8)/img->cbcr_w, (i*8)%img->cbcr_w, DCT_inversa);
+
+        //desalocarBloco(&bloco);
+        //desalocarBloco(&quantizacao_inversa);
+        //desalocarBloco(&DCT_inversa);
+    }
+
+    printf("Matriz Cr preenchida\n\n");
+    printf("Matriz Cr preenchida\n\n");
+
+
+    // Transformação para RGB.
+    int rgb_i = 0, rgb_j = 0;
+    for(int i = 0; i < img->h/2; i++){
+        rgb_j = 0;
+        for(int j = 0; j < img->w/2; j++){
+            (img->r)[rgb_i][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j];
+            (img->r)[rgb_i][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j+1];
+            (img->r)[rgb_i+1][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j];
+            (img->r)[rgb_i+1][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j+1];
+
+            (img->b)[rgb_i][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j];
+            (img->b)[rgb_i][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j+1];
+            (img->b)[rgb_i+1][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j];
+            (img->b)[rgb_i+1][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j+1];
+
+            (img->g)[rgb_i][rgb_j] = (img->y)[rgb_i][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            (img->g)[rgb_i][rgb_j+1] = (img->y)[rgb_i][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            (img->g)[rgb_i+1][rgb_j] = (img->y)[rgb_i+1][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            (img->g)[rgb_i+1][rgb_j+1] = (img->y)[rgb_i+1][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+
+            rgb_j += 2;
+        }
+        rgb_i += 2;
+    }
+
+    return img;
 }
 
 double* desfazCodDiferencial(double *cod, int tam){
@@ -313,64 +387,8 @@ IMAGEM* construirImagem(double ***blocos, int img_h, int img_w){
     img->cbcr_h = img->h/2; //Ignora o preenchimento feito para ficar múltiplo de 8.
     img->cbcr_w = img->w/2;
 
-    alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
-    alocarMatriz_unsignedChar(&(img->g), img->h, img->w);
-    alocarMatriz_unsignedChar(&(img->b), img->h, img->w);
-
-    alocarMatriz_double(&(img->y), img->h, img->w);
-    alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
-    alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
-
-    // Preenchendo as matrizes Cb e Cr.
-    for(int i = 0; i < img->cbcr_h; i++){ // Índice percorrendo as linhas da imagem.
-        for(int j = 0; j < img->cbcr_w; j++){ // Índice percorrendo as colunas da imagem.
-            int index = (img->cbcr_w/8) * (i/8) + (j/8); //Índice para percorrer o vetor de blocos.
-            //printf("(img->cb)[%d][%d] = %5.0lf\n", i, j, (blocos[index])[i % 8][j % 8]);
-            (img->cb)[i][j] = (blocos[index])[i % 8][j % 8];
-            (img->cr)[i][j] = (blocos[index])[i % 8][j % 8];
-        }
-    }
 
 
-/*
-    // Preenchendo a matriz Y.
-    for(int i = 0; i < img->h; i++){
-        printf("i: %d\n", i);
-        for(int j = 0; j < img->w; j++){
-            int index = (img_w/8) * (i/8) + (j/8);
-            (img->y)[i][j] = (blocos[index])[i % 8][j % 8];
-        }
-    }
-*/
-
-    // Transformação para RGB.
-    int rgb_i = 0, rgb_j = 0;
-    printf("==== TRANSFORMAÇÃO PARA RGB ====\n\nDimensões da imagem: %d x %d\ncbcr_h e _w: %d %d\n\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
-    for(int i = 0; i < img->cbcr_h; i++){
-        rgb_j = 0;
-        for(int j = 0; j < img->cbcr_w; j++){
-            printf("i: %d j: %d\n", i, j);
-            (img->r)[rgb_i][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j];
-            (img->r)[rgb_i][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j+1];
-            (img->r)[rgb_i+1][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j];
-            (img->r)[rgb_i+1][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j+1];
-
-            (img->b)[rgb_i][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j];
-            (img->b)[rgb_i][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j+1];
-            (img->b)[rgb_i+1][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j];
-            (img->b)[rgb_i+1][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j+1];
-
-            (img->g)[rgb_i][rgb_j] = (img->y)[rgb_i][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-            (img->g)[rgb_i][rgb_j+1] = (img->y)[rgb_i][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-            (img->g)[rgb_i+1][rgb_j] = (img->y)[rgb_i+1][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-            (img->g)[rgb_i+1][rgb_j+1] = (img->y)[rgb_i+1][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-
-            rgb_j += 2;
-        }
-        rgb_i += 2;
-    }
-
-    printf("Saiu da função construirImagem()\n");
     return img;
 }
 
