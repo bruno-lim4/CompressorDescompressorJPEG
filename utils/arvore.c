@@ -259,7 +259,7 @@ ARVORE_DC* criarArvoreDC(){
         iniciarTabelaDC();
 
     ARVORE_DC* arv = malloc(sizeof(ARVORE_DC));
-    arv->raiz = criarNo_DC(0);
+    arv->raiz = criarNo_DC(-1);
 
     for(int cat = 0; cat < 11; cat++){
         inserirCatDC(arv, tabela_DC[cat], calculaComprimento_DC(cat), criarNo_DC(cat));
@@ -272,7 +272,7 @@ NO_DC* criarNo_DC(int cat){
     NO_DC* no = malloc(sizeof(NO_DC));
 
     no->esquerda = no->direita = NULL;
-    no->ehFolha = 1;
+    no->ehFolha = 0;
     no->cat = cat;
 
     return no;
@@ -287,6 +287,7 @@ void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no){
                 atual->esquerda = malloc(sizeof(NO_DC));
                 atual->esquerda->esquerda = atual->esquerda->direita = NULL;
                 atual->esquerda->ehFolha = 0;
+                atual->esquerda->cat = -1;
             }
             atual = atual->esquerda;
         } else {
@@ -294,6 +295,7 @@ void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no){
                 atual->direita = malloc(sizeof(NO_DC));
                 atual->direita->esquerda = atual->direita->direita = NULL;
                 atual->direita->ehFolha = 0;
+                atual->direita->cat = -1;
             }
             atual = atual->direita;
         }
@@ -430,15 +432,17 @@ void printAC(NO_AC* raiz){
 
 }
 
-void printDC(NO_DC* raiz){
+void printDC_rec(NO_DC* raiz){
     if(raiz == NULL)
         return;
 
-    if(ehFolha_DC(raiz)){
-        printf("cat: %d\n", raiz->cat);
-    }
+    //if(ehFolha_DC(raiz)){
+        printf("cat: %d ehFolha: %d\n", raiz->cat, raiz->ehFolha);
+    //}
 
-    printDC(raiz->esquerda);
-    printDC(raiz->direita);
-
+    printDC_rec(raiz->esquerda);
+    printDC_rec(raiz->direita);
+}
+void printDC(ARVORE_DC* arv){
+    printDC_rec(arv->raiz);
 }

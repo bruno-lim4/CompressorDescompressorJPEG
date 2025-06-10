@@ -1,4 +1,5 @@
 #include "leitor.h"
+#include "imagem.h"
 
 struct leitor_{
     FILE* f;
@@ -16,13 +17,19 @@ LEITOR* criarLeitor(FILE *f){
 }
 
 void carregarBuffer(LEITOR* l){
-    fread(&(l->buffer), 1, 1, l->f);
-    l->qtdBitsBuffer = 8;
+    int numBytesLidos = fread(&(l->buffer), 1, 4, l->f); // Tenta ler 4 bytes do arquivo.
+    l->qtdBitsBuffer = 8*numBytesLidos; // Se estiver no fim do arquivo, pode não ter 4 bytes para ler.
+    printf("numBytesLidos: %d tamBuffer: %d\n\n", numBytesLidos, l->qtdBitsBuffer);
 }
+
 int lerBit(LEITOR *l){
     if(l->qtdBitsBuffer == 0){
         carregarBuffer(l);
     }
+
+    // Debug.
+    //printf("\nna lerBit()\nbuffer:\n\n");
+    //printarInt(l->buffer);
 
     int bit = (l->buffer >> l->qtdBitsBuffer-1) & 1;
     l->qtdBitsBuffer--;

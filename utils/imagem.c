@@ -244,6 +244,8 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     img->fileHeader = leituraFileHeader(in);
     img->infoHeader = leituraInfoHeader(in);
 
+    fseek(in, 54, SEEK_SET);
+
     // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
     img->h = get_biHeight(img->infoHeader);
@@ -398,4 +400,35 @@ void salvarBMP(FILE* f, IMAGEM* img) {
             fwrite(pixel, 1, 3, f);
         }
     }
+}
+
+// Funções de debug.
+void printarInt(int byte){
+    for(int i = 31; i >= 0; i--){
+        if(byte & (1 << i))
+            printf("1");
+        else
+            printf("0");
+    }
+    printf("\n");
+}
+
+void printarUint_32(uint32_t buffer){
+    for(int i = sizeof(uint32_t)*8 - 1; i >= 0; i--){
+        if(buffer & (1 << i))
+            printf("1");
+        else
+            printf("0");
+    }
+    printf("\n");
+}
+
+void printarLongInt(long int byte){
+    for(int i = 63; i >= 0; i--){
+        if(byte & (1 << i))
+            printf("1");
+        else
+            printf("0");
+    }
+    printf("\n");
 }

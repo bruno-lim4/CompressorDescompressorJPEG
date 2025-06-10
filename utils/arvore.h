@@ -12,7 +12,7 @@ typedef struct arvore_ac_ ARVORE_AC;
 
 // debug.
 void printAC(NO_AC* raiz);
-void printDC(NO_DC* raiz);
+void printDC(ARVORE_DC* raiz);
 
 
 ARVORE_DC* criarArvoreDC();

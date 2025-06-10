@@ -26,6 +26,7 @@ void decodificaDC(int* DC, LEITOR* l, int DC_anterior){ // Se DC_anterior == -1,
     int dif = lerValor(get_cat_DC(atual), l);
     if(DC_anterior == -1){
         *DC = dif;
+        printf("DC: %d ", *DC);
         return;
     }
 
@@ -46,11 +47,11 @@ void decodificaAC(int *bloco, LEITOR* l){
 
     int pos = 1;
     while(pos < 64){ //Loop até preencher o bloco inteiro.
-        printf("Debug 1\n");
+        //printf("Debug 1\n");
         NO_AC* atual = getRaiz_AC(arvoreAC);
-        printf("Debug 2\n");
+        //printf("Debug 2\n");
         while(!ehFolha_AC(atual)){
-            printf("Debug loop\n");
+            //printf("Debug loop\n");
             int bit = lerBit(l);
 
             // Debug.
@@ -63,10 +64,10 @@ void decodificaAC(int *bloco, LEITOR* l){
                 atual = getFilhoDireitoAC(atual);
             else
                 atual = getFilhoEsquerdoAC(atual);
-            ehFolha_AC(atual);
-            printf("Debug fim loop\n");
+            //ehFolha_AC(atual);
+            //printf("Debug fim loop\n");
         }
-        printf("Debug 3\n");
+        //printf("Debug 3\n");
         printf("\nrun: %d size: %d ehFolha: %d\n\n", get_runlength_AC(atual), get_size_AC(atual), ehFolha_AC(atual));
 
         // Debug.
