@@ -1,5 +1,6 @@
 #include "arvore.h"
 #include "codifica.h"
+#include "imagem.h"
 
 uint32_t tabela_AC[16][10];
 int iniciou_tabelaAC = 0;
@@ -39,7 +40,7 @@ void iniciarTabelaAC(){
     tabela_AC[2][9] = 0b1111111110001111;
 
     tabela_AC[3][0] = 0b111010;
-    tabela_AC[3][1] = 0b11111011;
+    tabela_AC[3][1] = 0b111110111;
     tabela_AC[3][2] = 0b11111110111;
     tabela_AC[3][3] = 0b1111111110010000;
     tabela_AC[3][4] = 0b1111111110010001;
@@ -284,18 +285,12 @@ void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no){
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
         if (bit == 0) {
             if (!atual->esquerda) {
-                atual->esquerda = malloc(sizeof(NO_DC));
-                atual->esquerda->esquerda = atual->esquerda->direita = NULL;
-                atual->esquerda->ehFolha = 0;
-                atual->esquerda->cat = -1;
+                atual->esquerda = criarNo_DC(-1);
             }
             atual = atual->esquerda;
         } else {
             if (!atual->direita) {
-                atual->direita = malloc(sizeof(NO_DC));
-                atual->direita->esquerda = atual->direita->direita = NULL;
-                atual->direita->ehFolha = 0;
-                atual->direita->cat = -1;
+                atual->direita = criarNo_DC(-1);
             }
             atual = atual->direita;
         }
@@ -341,16 +336,22 @@ ARVORE_AC* criarArvoreAC(){
         iniciarTabelaAC();
 
     ARVORE_AC* arv = malloc(sizeof(ARVORE_AC));
-    arv->raiz = criarNo_AC(0, 0);
+    arv->raiz = criarNo_AC(-1, -1);
 
     for(int runlength = 0; runlength < 16; runlength++){
         for(int size = 0; size < 10; size++){
-            inserirPrefixoAC(arv, tabela_AC[runlength][size], calculaComprimento_AC(runlength, size), criarNo_AC(runlength, size));
+            inserirPrefixoAC(arv, tabela_AC[runlength][size], calculaComprimento_AC(runlength, size), criarNo_AC(runlength, size+1));
         }
     }
 
+    // EOB.
+    inserirPrefixoAC(arv, 0b1010, 4, criarNo_AC(0, 0));
+    // Sequência de 15 zeros.
+    inserirPrefixoAC(arv, 0b11111111011, 11, criarNo_AC(15, 0));
+
     return arv;
 }
+
 
 NO_AC* criarNo_AC(int runlength, int size){
     NO_AC* no = malloc(sizeof(NO_AC));
@@ -369,12 +370,12 @@ void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, NO_AC* no){
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
         if (bit == 0) {
             if (!atual->esquerda) {
-                atual->esquerda = criarNo_AC(0, 0);
+                atual->esquerda = criarNo_AC(-1, -1);
             }
             atual = atual->esquerda;
         } else {
             if (!atual->direita) {
-                atual->direita = criarNo_AC(0, 0);
+                atual->direita = criarNo_AC(-1, -1);
             }
             atual = atual->direita;
         }
@@ -419,17 +420,18 @@ void desalocarArvoreAC(NO_AC* no){
     free(no);
 }
 
-void printAC(NO_AC* raiz){
+void printAC_rec(NO_AC* raiz){
     if(raiz == NULL)
         return;
 
-    if(ehFolha_AC(raiz)){
-        printf("runlength: %d size: %d\n", raiz->runlength, raiz->size);
-    }
+    printf("runlength: %d size: %d ehFolha: %d\n", raiz->runlength, raiz->size, raiz->ehFolha);
 
-    printAC(raiz->esquerda);
-    printAC(raiz->direita);
+    printAC_rec(raiz->esquerda);
+    printAC_rec(raiz->direita);
+}
 
+void printAC(ARVORE_AC* arv){
+    printAC_rec(arv->raiz);
 }
 
 void printDC_rec(NO_DC* raiz){
@@ -445,4 +447,48 @@ void printDC_rec(NO_DC* raiz){
 }
 void printDC(ARVORE_DC* arv){
     printDC_rec(arv->raiz);
+}
+
+NO_AC* buscarPrefixo(int pref, NO_AC* atual){
+    /*
+    int comp, pref;
+    if(i == 0 && j == 0){
+        comp = 4;
+        pref = 0b1010;
+    }
+    else if(i == 15 && j == 0){
+        comp = 11;
+        pref = 0b11111111011;
+    }
+    else{
+        comp = calculaComprimento_AC(i, j);
+        pref = tabela_AC[i][j-1];
+    }
+    */
+    int comp = calcularCompInt(pref);
+    printf("comprimento: %d\n", comp);
+    for(int k = 0; k < comp; k++){
+        if(atual == NULL){
+            //printf("NULO! i: %d\n", k);
+            return NULL;
+        }
+        if(pref & (1 << (comp - 1 - k))){
+            if(pref == 0){
+                printf("DESCEU ESQ\n");
+            }
+            //printf("shift: %d tabela: %d direita\n", 1 << (comp - 1 - k), pref);
+            atual = getFilhoDireitoAC(atual);
+        }
+        else{
+            if(pref == 0){
+                printf("DESCEU DIR\n");
+            }
+
+            //printf("shift: %d tabela: %d esquerda\n", 1 << (comp - 1 - k), pref);
+            atual = getFilhoEsquerdoAC(atual);
+        }
+    }
+    //printf("na buscar: run: %d, size: %d\n", get_runlength_AC(atual), get_size_AC(atual));
+
+    return atual;
 }

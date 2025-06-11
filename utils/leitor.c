@@ -3,7 +3,7 @@
 
 struct leitor_{
     FILE* f;
-    int buffer;
+    uint32_t buffer;
     int qtdBitsBuffer;
 };
 
@@ -19,7 +19,9 @@ LEITOR* criarLeitor(FILE *f){
 void carregarBuffer(LEITOR* l){
     int numBytesLidos = fread(&(l->buffer), 1, 4, l->f); // Tenta ler 4 bytes do arquivo.
     l->qtdBitsBuffer = 8*numBytesLidos; // Se estiver no fim do arquivo, pode não ter 4 bytes para ler.
-    printf("numBytesLidos: %d tamBuffer: %d\n\n", numBytesLidos, l->qtdBitsBuffer);
+    //printf("numBytesLidos: %d tamBuffer: %d\n\n", numBytesLidos, l->qtdBitsBuffer);
+    //printf("buffer: ");
+    //printarUint_32(l->buffer);
 }
 
 int lerBit(LEITOR *l){
@@ -33,6 +35,8 @@ int lerBit(LEITOR *l){
 
     int bit = (l->buffer >> l->qtdBitsBuffer-1) & 1;
     l->qtdBitsBuffer--;
+
+    //printf("bit lido: %d\n", bit);
 
     return bit;
 }

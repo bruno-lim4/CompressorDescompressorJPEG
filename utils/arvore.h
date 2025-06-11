@@ -11,7 +11,7 @@ typedef struct no_ac_ NO_AC;
 typedef struct arvore_ac_ ARVORE_AC;
 
 // debug.
-void printAC(NO_AC* raiz);
+void printAC(ARVORE_AC* raiz);
 void printDC(ARVORE_DC* raiz);
 
 
@@ -35,5 +35,8 @@ int ehFolha_AC(NO_AC* no);
 int get_runlength_AC(NO_AC* no);
 int get_size_AC(NO_AC* no);
 void desalocarArvoreAC(NO_AC* no);
+
+
+NO_AC* buscarPrefixo(int pref, NO_AC* atual);
 
 #endif

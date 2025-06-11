@@ -95,6 +95,24 @@ double** matrizTransposta(double** a, int n) {
     return res; 
 }
 
+void printMatrizInt(int** m, int h, int w){
+    for(int i = 0; i < h; i++){
+        for(int j = 0; j < w; j++){
+            printf("%d ", m[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void printMatrizDouble(double** m, int h, int w){
+    for(int i = 0; i < h; i++){
+        for(int j = 0; j < w; j++){
+            printf("%4.2lf ", m[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 void print_binary(int value, int bits) {
     for(int i = bits-1; i >= 0; i--) {
         printf("%d", value&(1<<i) ? 1 : 0);

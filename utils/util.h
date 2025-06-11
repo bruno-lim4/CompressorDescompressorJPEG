@@ -20,4 +20,7 @@ uint32_t shifta_e_grava(uint32_t a, uint32_t b, int qtd_b);
 uint32_t get_mantissa_comp1(int value, int* qtd);
 int get_qtdBits(uint32_t value);
 
+void printMatriz(int** m, int h, int w);
+void printMatrizDouble(double** m, int h, int w);
+
 #endif

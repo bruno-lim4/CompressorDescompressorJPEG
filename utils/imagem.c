@@ -277,15 +277,50 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         blocos_em_vetor_Cr[i] = (int*) malloc(sizeof(int)*64);
     }
 
+    // Debug.
+    //printf("Dimensões da imagem:\nh: %d w: %d\nnumBlocosCbCr: %d numBlocosY: %d\n\n", img->h, img->w, num_blocos_CbCr, num_blocos_Y);
+
     LEITOR* leitor = criarLeitor(in);
     int DC_anterior = -1;
+    int ehPrimeiroDC = 1;
     for(int i = 0; i < num_blocos_Y; i++){
-        decodificaDC(&(blocos_em_vetor_Y[i][0]), leitor, DC_anterior);
+        decodificaDC(&(blocos_em_vetor_Y[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Y[i][0];
 
-        for(int j = 1; j < 64; j++){
-            decodificaAC(blocos_em_vetor_Y[i], leitor);
-        }
+        decodificaAC(blocos_em_vetor_Y[i], leitor);
+
+
+        //printf("=============== BLOCO %d ==============\n", i);
+        //for(int j = 0; j < 64; j++){
+        //    printf("%d ", blocos_em_vetor_Y[i][j]);
+        //}
+        //printf("\n");
+    }
+
+    ehPrimeiroDC = 1;
+    for(int i = 0; i < num_blocos_CbCr; i++){
+        decodificaDC(&(blocos_em_vetor_Cb[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
+        DC_anterior = blocos_em_vetor_Cb[i][0];
+
+        decodificaAC(blocos_em_vetor_Cb[i], leitor);
+        
+        //for(int j = 0; j < 64; j++){
+        //    printf("%d ", blocos_em_vetor_Cb[i][j]);
+        //}
+        //printf("\n");
+    }
+
+    ehPrimeiroDC = 1;
+    for(int i = 0; i < num_blocos_CbCr; i++){
+        decodificaDC(&(blocos_em_vetor_Cr[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
+        DC_anterior = blocos_em_vetor_Cr[i][0];
+
+        decodificaAC(blocos_em_vetor_Cr[i], leitor);
+        
+        //for(int j = 0; j < 64; j++){
+        //    printf("%d ", blocos_em_vetor_Cr[i][j]);
+        //}
+        //printf("\n");
     }
 
     alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
@@ -341,7 +376,9 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
 
     //printf("Matriz Cr preenchida\n\n");
     //printf("Matriz Cr preenchida\n\n");
-
+    //printMatrizDouble(img->y, img->h, img->w);
+    //printMatrizDouble(img->cb, img->cbcr_h, img->cbcr_w);
+    printMatrizDouble(img->cr, img->cbcr_h, img->cbcr_w);
 
     // Transformação para RGB.
     int rgb_i = 0, rgb_j = 0;
@@ -431,4 +468,16 @@ void printarLongInt(long int byte){
             printf("0");
     }
     printf("\n");
+}
+
+int calcularCompInt(int pref){
+    if(pref <= 1)
+        return 2;
+    int ultimo_um = 0;
+    for(int k = 0; k < 32; k++){
+        if(pref & (1 << k))
+            ultimo_um = k; // guarda posição do último bit igual a 1.
+    }
+
+    return ultimo_um+1;    
 }

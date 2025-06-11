@@ -20,5 +20,6 @@ void salvarBMP(FILE* f, IMAGEM* img);
 void printarInt(int byte);
 void printarLongInt(long int byte);
 void printarUint_32(uint32_t buffer);
+int calcularCompInt(int pref);
 
 #endif
