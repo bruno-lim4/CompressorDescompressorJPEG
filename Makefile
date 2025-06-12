@@ -1,6 +1,9 @@
-all: main
+all: compressor descompressor
 
-main: consts util codifica gravador bloco header imagem decodifica leitor arvore
+compressor: consts util codifica gravador bloco header imagem decodifica leitor arvore
+	gcc -std=c99 compressor.c -o compressor ./utils/header.o ./utils/codifica.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o ./utils/gravador.o ./utils/decodifica.o ./utils/leitor.o ./utils/arvore.o
+
+descompressor: consts util codifica gravador bloco header imagem decodifica leitor arvore
 	gcc -std=c99 descompressor.c -o descompressor ./utils/header.o ./utils/codifica.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o ./utils/gravador.o ./utils/decodifica.o ./utils/leitor.o ./utils/arvore.o
 
 imagem:
@@ -33,4 +36,4 @@ arvore:
 	gcc -c ./utils/arvore.c -o ./utils/arvore.o
 
 clean:
-	rm descompressor ./utils/*.o
+	rm compressor descompressor ./utils/*.o
