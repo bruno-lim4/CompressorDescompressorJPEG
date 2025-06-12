@@ -58,3 +58,8 @@ int lerValor(int numBits, LEITOR* l){
     
     return valor;
 }
+
+void destruirLeitor(LEITOR** l){
+    free(*l);
+    l = NULL;
+}

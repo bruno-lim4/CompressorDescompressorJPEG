@@ -11,5 +11,6 @@ LEITOR* criarLeitor(FILE *f);
 void carregarBuffer(LEITOR* l);
 int lerBit(LEITOR *l);
 int lerValor(int numBits, LEITOR* l);
+void destruirLeitor(LEITOR** l);
 
 #endif

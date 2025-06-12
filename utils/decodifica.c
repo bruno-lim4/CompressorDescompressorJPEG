@@ -5,15 +5,18 @@
 
 ARVORE_AC* arvoreAC;
 ARVORE_DC* arvoreDC;
-int criou_AC = 0;
-int criou_DC = 0;
 
-void decodificaDC(int* DC, LEITOR* l, int DC_anterior, int* ehPrimeiroDC){ // Se primeiro_DC == 1, estamos decodificando o primeiro.
-    if(!criou_DC){
-        arvoreDC = criarArvoreDC();
-        criou_DC = 1;
-    }
+void iniciarDecodificacao(){
+    arvoreAC = criarArvoreAC();
+    arvoreDC = criarArvoreDC();
+}
 
+void encerrarDecodificacao(){
+    desalocarArvoreAC(&arvoreAC);
+    desalocarArvoreDC(&arvoreDC);
+}
+
+void decodificaDC(int* DC, LEITOR* l, int DC_anterior, int* ehPrimeiroDC){ // Se ehPrimeiroDC == 1, estamos decodificando o primeiro.
     NO_DC* atual = getRaiz_DC(arvoreDC);
     int debug = 0;
     while(!ehFolha_DC(atual)){
@@ -49,11 +52,6 @@ void decodificaDC(int* DC, LEITOR* l, int DC_anterior, int* ehPrimeiroDC){ // Se
 }
 
 void decodificaAC(int *bloco, LEITOR* l){
-    if(!criou_AC){
-        arvoreAC = criarArvoreAC();
-        criou_AC = 1;
-    }
-
     //printf("Sequência de bits lida:\n");
 
     int pos = 1;

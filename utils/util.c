@@ -20,7 +20,17 @@ void desalocarMatriz_double(double ***m, int h , int w) {
         (*m)[i] = NULL;
     }
 
-    free(m);
+    free(*m);
+    *m = NULL;
+}
+
+void desalocarMatriz_int(int ***m, int h , int w) {
+    for(int i = 0; i < h; i++){
+        free((*m)[i]);
+        (*m)[i] = NULL;
+    }
+
+    free(*m);
     *m = NULL;
 }
 
@@ -30,7 +40,7 @@ void desalocarMatriz_unsignedChar(unsigned char ***m, int h , int w) {
         (*m)[i] = NULL;
     }
 
-    free(m);
+    free(*m);
     *m = NULL;
 }
 
@@ -95,10 +105,10 @@ double** matrizTransposta(double** a, int n) {
     return res; 
 }
 
-void printMatrizInt(int** m, int h, int w){
+void printMatrizUchar(unsigned char** m, int h, int w){
     for(int i = 0; i < h; i++){
         for(int j = 0; j < w; j++){
-            printf("%d ", m[i][j]);
+            printf("[%d][%d]: %d\n", i, j, m[i][j]);
         }
         printf("\n");
     }
@@ -107,7 +117,7 @@ void printMatrizInt(int** m, int h, int w){
 void printMatrizDouble(double** m, int h, int w){
     for(int i = 0; i < h; i++){
         for(int j = 0; j < w; j++){
-            printf("%4.2lf ", m[i][j]);
+            printf("[%d][%d]: %4.2lf\n", i, j, m[i][j]);
         }
         printf("\n");
     }

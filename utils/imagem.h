@@ -15,6 +15,7 @@ void escreverImagem(FILE* f, IMAGEM* img);
 void comprimeImagem(IMAGEM* img, FILE* f);
 IMAGEM* descomprimeImagem(FILE* in, FILE* out);
 void printarImagem(IMAGEM* img);
+void desalocarImagem(IMAGEM** img);
 void salvarBMP(FILE* f, IMAGEM* img);
 //função de debug.
 void printarInt(int byte);

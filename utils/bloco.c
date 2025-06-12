@@ -56,13 +56,16 @@ BLOCO* aplicaDCT(BLOCO* bloco) {
 
 // desfaz o level sampling tbm
 BLOCO* desfazDCT(BLOCO* bloco) {
-    double** res = mult_matrizConst(mult_constMatriz(matriz_DCT_INV, bloco->m,8), matriz_DCT_T_INV, 8);
+    double** DCT_INV_m = mult_constMatriz(matriz_DCT_T, bloco->m,8);
+    double** res = mult_matrizConst(DCT_INV_m, matriz_DCT, 8);
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
             res[i][j] += 128;
         }
     }
-    return criarBloco(res, 0, 0, bloco->tipo);
+
+    BLOCO* nbloco = criarBloco(res, 0, 0, bloco->tipo);
+    return nbloco;
 }
 
 BLOCO* aplicaQuantizacao(BLOCO* bloco){

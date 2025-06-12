@@ -21,7 +21,7 @@ void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no);
 NO_DC* getRaiz_DC(ARVORE_DC* arv);
 NO_DC* getFilhoEsquerdoDC(NO_DC* no);
 NO_DC* getFilhoDireitoDC(NO_DC* no);
-void desalocarArvoreDC(NO_DC* no);
+void desalocarArvoreDC(ARVORE_DC** no);
 int get_cat_DC(NO_DC* no);
 int ehFolha_DC(NO_DC* no);
 
@@ -34,7 +34,7 @@ NO_AC* getFilhoDireitoAC(NO_AC* no);
 int ehFolha_AC(NO_AC* no);
 int get_runlength_AC(NO_AC* no);
 int get_size_AC(NO_AC* no);
-void desalocarArvoreAC(NO_AC* no);
+void desalocarArvoreAC(ARVORE_AC** no);
 
 
 NO_AC* buscarPrefixo(int pref, NO_AC* atual);

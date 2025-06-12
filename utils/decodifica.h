@@ -6,7 +6,9 @@
 #include <stdint.h>
 #include "leitor.h"
 
+void iniciarDecodificacao();
 void decodificaDC(int* DC, LEITOR* l, int DC_anterior, int* ehPrimeiroDC);
 void decodificaAC(int *bloco, LEITOR* l);
+void encerrarDecodificacao();
 
 #endif

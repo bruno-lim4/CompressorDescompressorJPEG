@@ -72,12 +72,17 @@ BMPFILEHEADER* leituraFileHeader(FILE* arq) {
     return criarFileHeader(bfType, bfSize, bfReserved1, bfReserved2, bfOffBits);
 }
 
-BMPFILEHEADER* escreverFileHeader(FILE* arq, BMPFILEHEADER* fileHeader) {
+void escreverFileHeader(FILE* arq, BMPFILEHEADER* fileHeader) {
     fwrite(&fileHeader->bfType, sizeof(unsigned short int), 1, arq);
     fwrite(&fileHeader->bfSize, sizeof(unsigned int), 1, arq);
     fwrite(&fileHeader->bfReserved1, sizeof(unsigned short int), 1, arq);
     fwrite(&fileHeader->bfReserved2, sizeof(unsigned short int), 1, arq);
     fwrite(&fileHeader->bfOffBits, sizeof(unsigned int), 1, arq);
+}
+
+void desalocarFileHeader(BMPFILEHEADER** fileHeader) {
+    free(*fileHeader);
+    *fileHeader = NULL;
 }
 
 void printFileHeader(BMPFILEHEADER* fileHeader) {
@@ -123,7 +128,7 @@ BMPINFOHEADER* leituraInfoHeader(FILE* arq) {
     return criarInfoHeader(biSize, biWidth, biHeight, biPlanes, biBitCount, biCompression, biSizeImage, biXPelsPerMeter, biYPelsPerMeter, biClrUsed, biClrImportant);
 }
 
-BMPINFOHEADER* escreverInfoHeader(FILE* arq, BMPINFOHEADER* infoHeader) {
+void escreverInfoHeader(FILE* arq, BMPINFOHEADER* infoHeader) {
     fwrite(&infoHeader->biSize, sizeof(unsigned int), 1, arq);
     fwrite(&infoHeader->biWidth, sizeof(int), 1, arq);
     fwrite(&infoHeader->biHeight, sizeof(int), 1, arq);
@@ -142,6 +147,12 @@ int get_biWidth(BMPINFOHEADER* infoHeader) {
 }
 int get_biHeight(BMPINFOHEADER* infoHeader) {
     return infoHeader->biHeight;
+}
+
+void desalocarInfoHeader(BMPINFOHEADER** infoHeader) {
+    free(*infoHeader);
+    *infoHeader = NULL;
+    return;
 }
 
 void printInfoHeader(BMPINFOHEADER* infoHeader) {

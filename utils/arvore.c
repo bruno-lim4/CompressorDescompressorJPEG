@@ -320,14 +320,20 @@ int ehFolha_DC(NO_DC* no){
     return no->ehFolha;
 }
 
-void desalocarArvoreDC(NO_DC* no){
+void desalocarNosDC(NO_DC* no){
     if (no == NULL)
         return;
     
-    desalocarArvoreDC(no->esquerda);    
-    desalocarArvoreDC(no->direita);
+    desalocarNosDC(no->esquerda);    
+    desalocarNosDC(no->direita);
     
     free(no);
+}
+
+void desalocarArvoreDC(ARVORE_DC** arv){
+    desalocarNosDC((*arv)->raiz);
+    free(*arv);
+    *arv = NULL;
 }
 
 
@@ -410,14 +416,20 @@ int ehFolha_AC(NO_AC* no){
     return no->ehFolha;
 }
 
-void desalocarArvoreAC(NO_AC* no){
+void desalocarNosAC(NO_AC* no){
     if (no == NULL)
         return;
     
-    desalocarArvoreAC(no->esquerda);    
-    desalocarArvoreAC(no->direita);
+    desalocarNosAC(no->esquerda);    
+    desalocarNosAC(no->direita);
     
     free(no);
+}
+
+void desalocarArvoreAC(ARVORE_AC** arv){
+    desalocarNosAC((*arv)->raiz);
+    free(*arv);
+    *arv = NULL;
 }
 
 void printAC_rec(NO_AC* raiz){

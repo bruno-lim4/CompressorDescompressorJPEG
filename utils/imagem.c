@@ -105,6 +105,15 @@ IMAGEM* criarImagem(FILE* f) {
         }
     }
 
+    // Debug.
+    //BLOCO* b = criarBloco(img->y, 0, 0, 'L');
+    //printf("Primeiro bloco Y da entrada:\n");
+    //printBloco(b);
+
+    //printFileHeader(img->fileHeader);
+    //printInfoHeader(img->infoHeader);
+
+
     return img;
 }
 
@@ -236,15 +245,18 @@ void printarImagem(IMAGEM* img) {
 }
 
 
-IMAGEM* descomprimeImagem(FILE* in, FILE* out){    
+IMAGEM* descomprimeImagem(FILE* in, FILE* out){
+    iniciarDecodificacao();
+    //printf("\n\n============ NA FUNÇÃO DESCOMPRIMEIMAGEM ============\n\n");
     // Lê o cabeçalho e os dados adicionais e armazena as dimensões da imagem original em h e w.
     IMAGEM* img = malloc(sizeof(IMAGEM));
 
-    // Mudar depois.
     img->fileHeader = leituraFileHeader(in);
     img->infoHeader = leituraInfoHeader(in);
 
-    fseek(in, 54, SEEK_SET);
+    // Debug.
+    //printFileHeader(img->fileHeader);
+    //printInfoHeader(img->infoHeader);
 
     // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
@@ -281,7 +293,7 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     //printf("Dimensões da imagem:\nh: %d w: %d\nnumBlocosCbCr: %d numBlocosY: %d\n\n", img->h, img->w, num_blocos_CbCr, num_blocos_Y);
 
     LEITOR* leitor = criarLeitor(in);
-    int DC_anterior = -1;
+    int DC_anterior = 0;
     int ehPrimeiroDC = 1;
     for(int i = 0; i < num_blocos_Y; i++){
         decodificaDC(&(blocos_em_vetor_Y[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
@@ -298,6 +310,7 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     }
 
     ehPrimeiroDC = 1;
+    DC_anterior = 0;
     for(int i = 0; i < num_blocos_CbCr; i++){
         decodificaDC(&(blocos_em_vetor_Cb[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Cb[i][0];
@@ -311,6 +324,7 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     }
 
     ehPrimeiroDC = 1;
+    DC_anterior = 0;
     for(int i = 0; i < num_blocos_CbCr; i++){
         decodificaDC(&(blocos_em_vetor_Cr[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Cr[i][0];
@@ -328,107 +342,127 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     alocarMatriz_unsignedChar(&(img->b), img->h, img->w);
 
     alocarMatriz_double(&(img->y), img->h, img->w);
-    alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
-    alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
-
-    //printf("Matrizes alocadas\n\n");
+    alocarMatriz_double(&(img->cb), img->cbcr_h, img->cbcr_w);
+    alocarMatriz_double(&(img->cr), img->cbcr_h, img->cbcr_w);
 
     BLOCO *bloco, *quantizacao_inversa, *DCT_inversa;
     for(int i = 0; i < num_blocos_Y; i++){
+        //printf("loop %d\n", i);
         //printf("número do bloco: %d\n\n", i);
-        bloco = monta_bloco(blocos_em_vetor_Y[i], 'Y');
-        //printf("bloquin montado\n\n");
+        bloco = monta_bloco(blocos_em_vetor_Y[i], 'L');
+        //if(i == 0){
+        //    printf("Primeiro bloco Y:\n");
+        //    printBloco(bloco);
+        //}
         quantizacao_inversa = desfazQuantizacao(bloco);
+        //if(i == 0){
+        //    printf("Primeiro bloco Y desquantizado:\n");
+        //    printBloco(quantizacao_inversa);
+        //}
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->y, (i*8)/img->w, (i*8)%img->w, DCT_inversa);
+        gravaBloco(img->y, 8*((i*8)/img->w), (i*8)%img->w, DCT_inversa);
+        //printf("[%d][%d]\n", 8*((i*8)/img->w), (i*8)%img->w);
 
-        //Tá dando double free().
-        //desalocarBloco(&bloco);
-        //desalocarBloco(&quantizacao_inversa);
-        //desalocarBloco(&DCT_inversa);
+        //if(i == 0){
+        //    printf("Primeiro bloco Y com DCT desfeita:\n");
+        //    printBloco(DCT_inversa);
+        //}
+
+        desalocarBloco(&bloco);
+        desalocarBloco(&quantizacao_inversa);
+        desalocarBloco(&DCT_inversa);
     }
-
-    //printf("Matriz Y preenchida\n\n");
 
     for(int i = 0; i < num_blocos_CbCr; i++){
         bloco = monta_bloco(blocos_em_vetor_Cb[i], 'B');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->cb, (i*8)/img->cbcr_w, (i*8)%img->cbcr_w, DCT_inversa);
+        gravaBloco(img->cb, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
+        //printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
-        //desalocarBloco(&bloco);
-        //desalocarBloco(&quantizacao_inversa);
-        //desalocarBloco(&DCT_inversa);
+        desalocarBloco(&bloco);
+        desalocarBloco(&quantizacao_inversa);
+        desalocarBloco(&DCT_inversa);
     }
-    //printf("Matriz Cb preenchida\n\n");
-    //printf("Matriz Cb preenchida\n\n");
 
     for(int i = 0; i < num_blocos_CbCr; i++){
+        //printf("loop %d\n", i);
         bloco = monta_bloco(blocos_em_vetor_Cr[i], 'R');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->cr, (i*8)/img->cbcr_w, (i*8)%img->cbcr_w, DCT_inversa);
+        gravaBloco(img->cr, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
+        //printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
-        //desalocarBloco(&bloco);
-        //desalocarBloco(&quantizacao_inversa);
-        //desalocarBloco(&DCT_inversa);
+        desalocarBloco(&bloco);
+        desalocarBloco(&quantizacao_inversa);
+        desalocarBloco(&DCT_inversa);
     }
-
-    //printf("Matriz Cr preenchida\n\n");
-    //printf("Matriz Cr preenchida\n\n");
-    //printMatrizDouble(img->y, img->h, img->w);
-    //printMatrizDouble(img->cb, img->cbcr_h, img->cbcr_w);
-    printMatrizDouble(img->cr, img->cbcr_h, img->cbcr_w);
 
     // Transformação para RGB.
     int rgb_i = 0, rgb_j = 0;
     for(int i = 0; i < img->h/2; i++){
         rgb_j = 0;
+        double constante;
         for(int j = 0; j < img->w/2; j++){
-            (img->r)[rgb_i][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j];
-            (img->r)[rgb_i][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i][rgb_j+1];
-            (img->r)[rgb_i+1][rgb_j] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j];
-            (img->r)[rgb_i+1][rgb_j+1] = ((img->cr)[i][j] - 128)/0.713 + (img->y)[rgb_i+1][rgb_j+1];
+            constante = (img->cr)[i][j] - 128;
+            (img->r)[rgb_i][rgb_j] = (constante)*1.402 + (img->y)[rgb_i][rgb_j];
+            (img->r)[rgb_i][rgb_j+1] = (constante)*1.402 + (img->y)[rgb_i][rgb_j+1];
+            (img->r)[rgb_i+1][rgb_j] = (constante)*1.402 + (img->y)[rgb_i+1][rgb_j];
+            (img->r)[rgb_i+1][rgb_j+1] = (constante)*1.402 + (img->y)[rgb_i+1][rgb_j+1];
 
-            (img->b)[rgb_i][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j];
-            (img->b)[rgb_i][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i][rgb_j+1];
-            (img->b)[rgb_i+1][rgb_j] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j];
-            (img->b)[rgb_i+1][rgb_j+1] = ((img->cb)[i][j] - 128)/0.564 + (img->y)[rgb_i+1][rgb_j+1];
+            constante = (img->cb)[i][j] - 128;
+            (img->b)[rgb_i][rgb_j] = (constante)*1.772 + (img->y)[rgb_i][rgb_j];
+            (img->b)[rgb_i][rgb_j+1] = (constante)*1.772 + (img->y)[rgb_i][rgb_j+1];
+            (img->b)[rgb_i+1][rgb_j] = (constante)*1.772 + (img->y)[rgb_i+1][rgb_j];
+            (img->b)[rgb_i+1][rgb_j+1] = (constante)*1.772 + (img->y)[rgb_i+1][rgb_j+1];
 
-            (img->g)[rgb_i][rgb_j] = (img->y)[rgb_i][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-            (img->g)[rgb_i][rgb_j+1] = (img->y)[rgb_i][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-            (img->g)[rgb_i+1][rgb_j] = (img->y)[rgb_i+1][rgb_j] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
-            (img->g)[rgb_i+1][rgb_j+1] = (img->y)[rgb_i+1][rgb_j+1] - 0.344*((img->cb)[i][j]) - 0.714*(img->cr)[i][j];
+            constante = -0.344136*((img->cb)[i][j] - 128) - 0.714136*((img->cr)[i][j] - 128);
+            (img->g)[rgb_i][rgb_j] = (img->y)[rgb_i][rgb_j] + constante;
+            (img->g)[rgb_i][rgb_j+1] = (img->y)[rgb_i][rgb_j+1] + constante;
+            (img->g)[rgb_i+1][rgb_j] = (img->y)[rgb_i+1][rgb_j] + constante;
+            (img->g)[rgb_i+1][rgb_j+1] = (img->y)[rgb_i+1][rgb_j+1] + constante;
 
             rgb_j += 2;
         }
         rgb_i += 2;
     }
 
+    // Debug.
+
+    //printf("\n\n========== MATRIZ R ==========\n\n");
+    //printMatrizUchar(img->r, img->h, img->w);
+    //printf("\n\n========== MATRIZ G ==========\n\n");
+    //printMatrizUchar(img->g, img->h, img->w);
+    //printf("\n\n========== MATRIZ B ==========\n\n");
+    //printMatrizUchar(img->b, img->h, img->w);
+
+    //printf("\n\n========== MATRIZ Y ==========\n\n");
+    //printMatrizDouble(img->y, img->h, img->w);
+    //printf("\n\n========== MATRIZ CB ==========\n\n");
+    //printMatrizDouble(img->cb, img->cbcr_h, img->cbcr_w);
+    //printf("\n\n========== MATRIZ CR ==========\n\n");
+    //printMatrizDouble(img->cr, img->cbcr_h, img->cbcr_w);
+
+    encerrarDecodificacao();
+    destruirLeitor(&leitor);
+
+    desalocarMatriz_int(&blocos_em_vetor_Y, num_blocos_Y, 64);
+    desalocarMatriz_int(&blocos_em_vetor_Cb, num_blocos_CbCr, 64);
+    desalocarMatriz_int(&blocos_em_vetor_Cr, num_blocos_CbCr, 64);
+
     return img;
 }
 
-double* desfazCodDiferencial(double *cod, int tam){
-    double* res = malloc(sizeof(double)*tam);
-
-    res[0] = cod[0];
-    for(int i = 1; i < tam; i++){
-        res[i] = res[i-1] + cod[i];
-    }
-
-    return res;
-}
-
-
 void salvarBMP(FILE* f, IMAGEM* img) {
     // Escreve cabeçalhos
-    fwrite(img->fileHeader, 14, 1, f);
-    fwrite(img->infoHeader, 40, 1, f);
+    fseek(f, 0, SEEK_SET);
+    escreverFileHeader(f, img->fileHeader);
+    escreverInfoHeader(f, img->infoHeader);
 
     int largura = img->w;
     int altura = img->h;
 
-    for (int i = altura - 1; i >= 0; i--) { // BMP escreve de baixo pra cima
+    for (int i = 0; i < altura; i++) { // BMP escreve de baixo pra cima
         for (int j = 0; j < largura; j++) {
             unsigned char pixel[3];
             pixel[0] = img->b[i][j]; // Azul
@@ -480,4 +514,21 @@ int calcularCompInt(int pref){
     }
 
     return ultimo_um+1;    
+}
+
+void desalocarImagem(IMAGEM** img) {
+    desalocarFileHeader(&((*img)->fileHeader));
+    desalocarInfoHeader(&((*img)->infoHeader));
+
+    desalocarMatriz_unsignedChar(&((*img)->r), (*img)->h, (*img)->w);
+    desalocarMatriz_unsignedChar(&((*img)->g), (*img)->h, (*img)->w);
+    desalocarMatriz_unsignedChar(&((*img)->b), (*img)->h, (*img)->w);
+
+    desalocarMatriz_double(&((*img)->y), (*img)->h, (*img)->w);
+    desalocarMatriz_double(&((*img)->cb), (*img)->cbcr_h, (*img)->cbcr_w);
+    desalocarMatriz_double(&((*img)->cr), (*img)->cbcr_h, (*img)->cbcr_w);
+
+    free(*img);
+
+    *img = NULL; 
 }
