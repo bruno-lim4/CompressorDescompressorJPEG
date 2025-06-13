@@ -107,7 +107,7 @@ uint32_t get_prefixoAC(int zeros, char cat, int* qtd_bits) {
 
     if (cat == '0') {
         // nesse caso, só tem 0 até o fim
-        if (zeros == -1) {
+        if (zeros == 15) {
             *qtd_bits = 12;
             return 0b111111110111;
         } else if (zeros == 0) {
@@ -167,8 +167,8 @@ uint32_t codifica_infoAC(int qtd_zero, int value, int* qtd_bits) {
 
 
 void inicializaTabelaAC() {
-    tabelaAC[0][0] = 0b00; // comeca em zero (!)
-    tabelaAC[0][1] = 0b01; // comeca em zero (!)
+    tabelaAC[0][0] = 0b00;
+    tabelaAC[0][1] = 0b01;
     tabelaAC[0][2] = 0b100;
     tabelaAC[0][3] = 0b1011;
     tabelaAC[0][4] = 0b11010;
@@ -201,7 +201,7 @@ void inicializaTabelaAC() {
     tabelaAC[2][9] = 0b1111111110001111;
 
     tabelaAC[3][0] = 0b111010;
-    tabelaAC[3][1] = 0b11111011;
+    tabelaAC[3][1] = 0b111110111;
     tabelaAC[3][2] = 0b11111110111;
     tabelaAC[3][3] = 0b1111111110010000;
     tabelaAC[3][4] = 0b1111111110010001;

@@ -3,14 +3,9 @@
 
 typedef struct bmpfileheader_ BMPFILEHEADER;
 typedef struct bmpinfoheader_ BMPINFOHEADER;
-typedef struct pixel_ PIXEL;
 
 #include <stdio.h>
 #include <stdlib.h>
-
-PIXEL* criarPixel(char r, char g, char b);
-PIXEL* leituraPixel(FILE* f);
-void printPixel(PIXEL* pixel);
 
 BMPFILEHEADER* criarFileHeader(unsigned short bfType, unsigned int bfSize, unsigned short bfReserved1, unsigned short bfReserved2, unsigned int bfOffBits);
 BMPFILEHEADER* leituraFileHeader(FILE* arq);
@@ -25,5 +20,6 @@ int get_biWidth(BMPINFOHEADER* infoHeader);
 int get_biHeight(BMPINFOHEADER* infoHeader);
 void desalocarInfoHeader(BMPINFOHEADER** infoHeader);
 void printInfoHeader(BMPINFOHEADER* infoHeader);
+void printFileHeader(BMPFILEHEADER* fileHeader);
 
 #endif

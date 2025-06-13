@@ -18,5 +18,6 @@ BLOCO* desfazQuantizacao(BLOCO* blocoQuantizado);
 int* pega_zigzag(BLOCO* bloco);
 BLOCO* monta_bloco(int* vetor, char tipo);
 void gravaBloco(double **m, int start_i, int start_j, BLOCO *b);
+int* processaBloco(BLOCO* bloco);
 
 #endif

@@ -8,6 +8,7 @@ typedef struct gravador_ GRAVADOR;
 #include <stdint.h>
 
 GRAVADOR* criarGravador(FILE* f);
+void desalocarGravador(GRAVADOR** gravador);
 void gravarValor(GRAVADOR* gravador, uint32_t value, int qtd_bits);
 void finalizarGravacao(GRAVADOR* gravador);
 

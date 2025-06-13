@@ -15,6 +15,8 @@ double getPosBloco(BLOCO *b, int i, int j){
 BLOCO* criarBloco(double** pos, int start_i, int start_j, char tipo) {
     // cria e aloca BLOCO 8x8
     BLOCO* bloco = (BLOCO*) malloc(sizeof(BLOCO));
+        if (bloco == NULL) return NULL;
+
     alocarMatriz_double(&(bloco->m), 8, 8);
 
     for(int i = 0; i < 8; i++) {
@@ -41,6 +43,21 @@ void printBloco(BLOCO *b){
 void desalocarBloco(BLOCO** bloco) {
     desalocarMatriz_double(&((*bloco)->m), 8, 8);
     free(*bloco);
+        *bloco = NULL;
+}
+
+BLOCO* aplicaDCT(BLOCO* bloco);
+BLOCO* desfazDCT(BLOCO* bloco);
+BLOCO* aplicaQuantizacao(BLOCO* bloco);
+int* pega_zigzag(BLOCO* bloco);
+
+int* processaBloco(BLOCO* bloco) {
+    BLOCO* bloco_dct = aplicaDCT(bloco);
+    BLOCO* bloco_qtz = aplicaQuantizacao(bloco_dct);
+    desalocarBloco(&bloco_dct);
+    int* vetor = pega_zigzag(bloco_qtz);
+    desalocarBloco(&bloco_qtz);
+    return vetor;
 }
 
 // faz o level sampling tbm
@@ -50,8 +67,15 @@ BLOCO* aplicaDCT(BLOCO* bloco) {
             (bloco->m)[i][j] -= 128;
         }
     }
-    double** DCT = mult_matrizConst(mult_constMatriz(matriz_DCT, bloco->m, 8), matriz_DCT_T, 8);
-    return criarBloco(DCT, 0, 0, bloco->tipo);
+
+    double** DCT_m = mult_constMatriz(matriz_DCT, bloco->m, 8);
+    double** DCT = mult_matrizConst(DCT_m, matriz_DCT_T, 8);
+
+    desalocarMatriz_double(&DCT_m, 8, 8);
+    BLOCO* nbloco = criarBloco(DCT, 0, 0, bloco->tipo);
+    desalocarMatriz_double(&DCT, 8, 8);
+
+    return nbloco;
 }
 
 // desfaz o level sampling tbm
@@ -65,6 +89,10 @@ BLOCO* desfazDCT(BLOCO* bloco) {
     }
 
     BLOCO* nbloco = criarBloco(res, 0, 0, bloco->tipo);
+
+    desalocarMatriz_double(&res, 8, 8);
+    desalocarMatriz_double(&DCT_INV_m, 8, 8);
+
     return nbloco;
 }
 
@@ -102,6 +130,8 @@ BLOCO* desfazQuantizacao(BLOCO* blocoQuantizado){
 // Constrói o vetor DC + AC a partir de um bloco.
 int* pega_zigzag(BLOCO* bloco) {
     int* vetor = (int*) malloc(sizeof(int)*64);
+    if (vetor == NULL) return NULL;
+
     int sobe = 1;
     int cnt = 0;
 

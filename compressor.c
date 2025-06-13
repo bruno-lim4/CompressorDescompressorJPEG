@@ -6,8 +6,10 @@ int main() {
     FILE* img_file = fopen("./imgs/carneiro.bmp", "rb");
     IMAGEM* img = criarImagem(img_file);
 
-    FILE* bin_file = fopen("./bin/carneiro.bin", "wb");
+    FILE* bin_file = fopen("./bin/comprimido.bin", "wb");
     comprimeImagem(img, bin_file);
+
+    desalocarImagem(&img);
 
     fclose(img_file);
     fclose(bin_file);

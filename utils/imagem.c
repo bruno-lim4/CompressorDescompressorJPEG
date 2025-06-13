@@ -20,10 +20,14 @@ struct imagem_ {
 IMAGEM* criarImagem(FILE* f) {
     // cria imagem
     IMAGEM* img = (IMAGEM*) malloc(sizeof(IMAGEM));
+    if (img == NULL) return NULL;
 
     // pega o cabecalho
     img->fileHeader = leituraFileHeader(f);
     img->infoHeader = leituraInfoHeader(f);
+
+    printFileHeader(img->fileHeader);
+    printInfoHeader(img->infoHeader);
 
     // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
@@ -105,50 +109,10 @@ IMAGEM* criarImagem(FILE* f) {
         }
     }
 
-    // Debug.
-    //BLOCO* b = criarBloco(img->y, 0, 0, 'L');
-    //printf("Primeiro bloco Y da entrada:\n");
-    //printBloco(b);
-
-    //printFileHeader(img->fileHeader);
-    //printInfoHeader(img->infoHeader);
-
-
     return img;
 }
 
-void codifica_gravaVetor(GRAVADOR* gravador, int* vetor, int valor_difDC) {
-    // grava DC
-    int qtd_DC;
-    uint32_t codificaDC = codifica_infoDC(valor_difDC, &qtd_DC);
-    gravarValor(gravador, codificaDC, qtd_DC);
-
-    int qtd_zeros = 0;
-
-    for(int i = 1; i < 64; i++) {
-        if (vetor[i] == 0) {
-            qtd_zeros++;
-        } else {
-            int valor = vetor[i];
-            int qtd_AC;
-            uint32_t codificaAC = codifica_infoAC(qtd_zeros, valor, &qtd_AC);
-            gravarValor(gravador, codificaAC, qtd_AC);
-
-            qtd_zeros = 0;
-        }
-    }
-
-    int qtd_fim;
-    uint32_t codifica_fim;
-
-    if (qtd_zeros == 0) {
-        codifica_fim = codifica_infoAC(0, 0, &qtd_fim);
-    } else {
-        codifica_fim = codifica_infoAC(-1, 0, &qtd_fim);
-    }
-
-    gravarValor(gravador, codifica_fim, qtd_fim);
-}
+void comprime_gravaMatriz(GRAVADOR* gravador, double** m, int i, int j, char tipoMatriz);
 
 void comprimeImagem(IMAGEM* img, FILE* f) {
     escreverFileHeader(f, img->fileHeader);
@@ -156,46 +120,12 @@ void comprimeImagem(IMAGEM* img, FILE* f) {
 
     GRAVADOR* gravador = criarGravador(f);
 
-    int ultimo_dc = 0;
-
-    for(int i = 0; i < (img->h); i += 8) {
-        for(int j = 0; j < (img->w); j += 8) {
-            BLOCO* bloco1 = criarBloco(img->y, i, j, 'L');
-            BLOCO* bloco1_dct = aplicaDCT(bloco1);
-            BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
-            int* vetor_final = pega_zigzag(bloco1_qtz);
-            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
-            ultimo_dc = vetor_final[0];
-        }
-    }
-
-    ultimo_dc = 0;
-
-    for(int i = 0; i < img->cbcr_h; i += 8) {
-        for(int j = 0; j < img->cbcr_w; j += 8) {
-            BLOCO* bloco1 = criarBloco(img->cb, i, j, 'B');
-            BLOCO* bloco1_dct = aplicaDCT(bloco1);
-            BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
-            int* vetor_final = pega_zigzag(bloco1_qtz);
-            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
-            ultimo_dc = vetor_final[0];
-        }
-    }
-
-    ultimo_dc = 0;
-
-    for(int i = 0; i < img->cbcr_h; i += 8) {
-        for(int j = 0; j < img->cbcr_w; j += 8) {
-            BLOCO* bloco1 = criarBloco(img->cr, i, j, 'R');
-            BLOCO* bloco1_dct = aplicaDCT(bloco1);
-            BLOCO* bloco1_qtz = aplicaQuantizacao(bloco1_dct);
-            int* vetor_final = pega_zigzag(bloco1_qtz);
-            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
-            ultimo_dc = vetor_final[0];
-        }
-    }
+    comprime_gravaMatriz(gravador, img->y, img->h, img->w, 'L');
+    comprime_gravaMatriz(gravador, img->cb, img->cbcr_h, img->cbcr_w, 'B');
+    comprime_gravaMatriz(gravador, img->cr, img->cbcr_h, img->cbcr_w, 'R');
 
     finalizarGravacao(gravador);
+    desalocarGravador(&gravador);
 }
 
 void escreverImagem(FILE* f, IMAGEM* img) {
@@ -223,8 +153,6 @@ void escreverImagem(FILE* f, IMAGEM* img) {
             fwrite(&r, sizeof(unsigned char), 1, f);
         }
     }
-
-    //printf("%lf / %lf\n", menor, maior);
 }
 
 // Função para debug.
@@ -244,19 +172,81 @@ void printarImagem(IMAGEM* img) {
     return;
 }
 
+void codifica_gravaVetor(GRAVADOR* gravador, int* vetor, int valor_difDC) {
+    printf("\nvetor de 64 pos (dcDif: %d): ", valor_difDC);
+    for(int i = 0; i < 64; i++) {
+        printf("%d ", vetor[i]);
+    }
+    printf("\n");
+
+    // grava DC
+    int qtd_DC;
+    printf("codifica DC=%d: ", valor_difDC);
+    uint32_t codificaDC = codifica_infoDC(valor_difDC, &qtd_DC);
+    print_binary(codificaDC, qtd_DC);
+    gravarValor(gravador, codificaDC, qtd_DC);
+
+    int qtd_zeros = 0;
+
+    for(int i = 1; i < 64; i++) {
+        if (vetor[i] == 0) {
+            qtd_zeros++;
+        } else {
+            int valor = vetor[i];
+
+            while(qtd_zeros >= 15) {
+                int qtd_15;
+                printf("codifica AC=(zero=%d, value=%d): ", qtd_zeros, 0);
+                uint32_t pref = codifica_infoAC(15, 0, &qtd_15);
+                print_binary(pref, qtd_15);
+                gravarValor(gravador, pref, qtd_15);
+
+                qtd_zeros -= 15;
+            }
+
+            int qtd_AC;
+            printf("codifica AC=(zero=%d, value=%d): ", qtd_zeros, valor);
+            uint32_t codificaAC = codifica_infoAC(qtd_zeros, valor, &qtd_AC);
+            print_binary(codificaAC, qtd_AC);
+            gravarValor(gravador, codificaAC, qtd_AC);
+
+            qtd_zeros = 0;
+        }
+    }
+
+    int qtd_fim;
+    uint32_t codifica_fim;
+
+    codifica_fim = codifica_infoAC(0, 0, &qtd_fim);
+    printf("codifica AC - FIM DO BLOCO: ");
+    print_binary(codifica_fim, qtd_fim);
+    gravarValor(gravador, codifica_fim, qtd_fim);
+}
+
+void comprime_gravaMatriz(GRAVADOR* gravador, double** m, int h, int w, char tipoMatriz) {
+    int ultimo_dc = 0;
+
+    for(int i = 0; i < h; i += 8) {
+        for(int j = 0; j < w; j += 8) {
+            BLOCO* bloco = criarBloco(m, i, j, tipoMatriz);
+            int* vetor_final = processaBloco(bloco);
+            codifica_gravaVetor(gravador, vetor_final, vetor_final[0]-ultimo_dc);
+            ultimo_dc = vetor_final[0];
+
+            free(vetor_final); vetor_final = NULL;
+            desalocarBloco(&bloco);
+        }
+    }
+}
+
+
 
 IMAGEM* descomprimeImagem(FILE* in, FILE* out){
-    iniciarDecodificacao();
-    //printf("\n\n============ NA FUNÇÃO DESCOMPRIMEIMAGEM ============\n\n");
-    // Lê o cabeçalho e os dados adicionais e armazena as dimensões da imagem original em h e w.
+    iniciarDecodificacao(); // Inicializa árvores de prefixos.
     IMAGEM* img = malloc(sizeof(IMAGEM));
 
     img->fileHeader = leituraFileHeader(in);
     img->infoHeader = leituraInfoHeader(in);
-
-    // Debug.
-    //printFileHeader(img->fileHeader);
-    //printInfoHeader(img->infoHeader);
 
     // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
@@ -274,13 +264,9 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     int bloco_hExtra = ((img->h/2) % 8) ? 1 : 0;
     int bloco_wExtra = ((img->w/2) % 8) ? 1 : 0;
     int num_blocos_CbCr = (img->h/2/8 + bloco_hExtra)*(img->w/2/8 + bloco_wExtra);
-    // Tamanho das matrizes Cb e Cr.
-    img->cbcr_h = (img->h/2) + 8*bloco_hExtra;
-    img->cbcr_w = (img->w/2) + 8*bloco_wExtra;
-
-    //printf("h: %d w: %d cbcr_h: %d cbcr_w: %d\n\n", img->h, img->w, img->cbcr_h, img->cbcr_w);
-    //printf("Número de blocos Y: %d Número de blocos CbCr: %d\n\n", num_blocos_Y, num_blocos_CbCr);
-
+    // Tamanho das matrizes Cb e Cr; 8 * número de blocos.
+    img->cbcr_h = 8*(img->h/2/8 + bloco_hExtra);
+    img->cbcr_w = 8*(img->w/2/8 + bloco_wExtra);
 
     int** blocos_em_vetor_Cb = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
     int** blocos_em_vetor_Cr = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
@@ -289,24 +275,14 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         blocos_em_vetor_Cr[i] = (int*) malloc(sizeof(int)*64);
     }
 
-    // Debug.
-    //printf("Dimensões da imagem:\nh: %d w: %d\nnumBlocosCbCr: %d numBlocosY: %d\n\n", img->h, img->w, num_blocos_CbCr, num_blocos_Y);
-
-    LEITOR* leitor = criarLeitor(in);
-    int DC_anterior = 0;
-    int ehPrimeiroDC = 1;
+    LEITOR* leitor = criarLeitor(in); // Estrutura pra ler um bit por vez.
+    int DC_anterior = 0; // Pra somar com a diferença decodificada e achar o próximo DC.
+    int ehPrimeiroDC = 1; // Flag pra sinalizar se é o primeiro DC a ser decodificado.
     for(int i = 0; i < num_blocos_Y; i++){
         decodificaDC(&(blocos_em_vetor_Y[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Y[i][0];
 
         decodificaAC(blocos_em_vetor_Y[i], leitor);
-
-
-        //printf("=============== BLOCO %d ==============\n", i);
-        //for(int j = 0; j < 64; j++){
-        //    printf("%d ", blocos_em_vetor_Y[i][j]);
-        //}
-        //printf("\n");
     }
 
     ehPrimeiroDC = 1;
@@ -316,11 +292,6 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         DC_anterior = blocos_em_vetor_Cb[i][0];
 
         decodificaAC(blocos_em_vetor_Cb[i], leitor);
-        
-        //for(int j = 0; j < 64; j++){
-        //    printf("%d ", blocos_em_vetor_Cb[i][j]);
-        //}
-        //printf("\n");
     }
 
     ehPrimeiroDC = 1;
@@ -330,11 +301,6 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         DC_anterior = blocos_em_vetor_Cr[i][0];
 
         decodificaAC(blocos_em_vetor_Cr[i], leitor);
-        
-        //for(int j = 0; j < 64; j++){
-        //    printf("%d ", blocos_em_vetor_Cr[i][j]);
-        //}
-        //printf("\n");
     }
 
     alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
@@ -346,52 +312,40 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     alocarMatriz_double(&(img->cr), img->cbcr_h, img->cbcr_w);
 
     BLOCO *bloco, *quantizacao_inversa, *DCT_inversa;
+    // Reconstrói os blocos e desfaz quantização e DCT.
+    // Componente Y.
     for(int i = 0; i < num_blocos_Y; i++){
-        //printf("loop %d\n", i);
-        //printf("número do bloco: %d\n\n", i);
         bloco = monta_bloco(blocos_em_vetor_Y[i], 'L');
-        //if(i == 0){
-        //    printf("Primeiro bloco Y:\n");
-        //    printBloco(bloco);
-        //}
+
         quantizacao_inversa = desfazQuantizacao(bloco);
-        //if(i == 0){
-        //    printf("Primeiro bloco Y desquantizado:\n");
-        //    printBloco(quantizacao_inversa);
-        //}
+
         DCT_inversa = desfazDCT(quantizacao_inversa);
         gravaBloco(img->y, 8*((i*8)/img->w), (i*8)%img->w, DCT_inversa);
-        //printf("[%d][%d]\n", 8*((i*8)/img->w), (i*8)%img->w);
-
-        //if(i == 0){
-        //    printf("Primeiro bloco Y com DCT desfeita:\n");
-        //    printBloco(DCT_inversa);
-        //}
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
         desalocarBloco(&DCT_inversa);
     }
 
+    // Componente Cb.
     for(int i = 0; i < num_blocos_CbCr; i++){
         bloco = monta_bloco(blocos_em_vetor_Cb[i], 'B');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
         gravaBloco(img->cb, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
-        //printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
         desalocarBloco(&DCT_inversa);
     }
 
+    // Componente Cr.
     for(int i = 0; i < num_blocos_CbCr; i++){
-        //printf("loop %d\n", i);
         bloco = monta_bloco(blocos_em_vetor_Cr[i], 'R');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
         gravaBloco(img->cr, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
-        //printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
+        printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -427,23 +381,7 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
         rgb_i += 2;
     }
 
-    // Debug.
-
-    //printf("\n\n========== MATRIZ R ==========\n\n");
-    //printMatrizUchar(img->r, img->h, img->w);
-    //printf("\n\n========== MATRIZ G ==========\n\n");
-    //printMatrizUchar(img->g, img->h, img->w);
-    //printf("\n\n========== MATRIZ B ==========\n\n");
-    //printMatrizUchar(img->b, img->h, img->w);
-
-    //printf("\n\n========== MATRIZ Y ==========\n\n");
-    //printMatrizDouble(img->y, img->h, img->w);
-    //printf("\n\n========== MATRIZ CB ==========\n\n");
-    //printMatrizDouble(img->cb, img->cbcr_h, img->cbcr_w);
-    //printf("\n\n========== MATRIZ CR ==========\n\n");
-    //printMatrizDouble(img->cr, img->cbcr_h, img->cbcr_w);
-
-    encerrarDecodificacao();
+    encerrarDecodificacao(); // Desaloca as árvores.
     destruirLeitor(&leitor);
 
     desalocarMatriz_int(&blocos_em_vetor_Y, num_blocos_Y, 64);
@@ -453,7 +391,8 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     return img;
 }
 
-void salvarBMP(FILE* f, IMAGEM* img) {
+// Salva a imagem no arquivo.
+void salvarImagem(FILE* f, IMAGEM* img) {
     // Escreve cabeçalhos
     fseek(f, 0, SEEK_SET);
     escreverFileHeader(f, img->fileHeader);
@@ -462,13 +401,11 @@ void salvarBMP(FILE* f, IMAGEM* img) {
     int largura = img->w;
     int altura = img->h;
 
-    for (int i = 0; i < altura; i++) { // BMP escreve de baixo pra cima
+    for (int i = 0; i < altura; i++){
         for (int j = 0; j < largura; j++) {
-            unsigned char pixel[3];
-            pixel[0] = img->b[i][j]; // Azul
-            pixel[1] = img->g[i][j]; // Verde
-            pixel[2] = img->r[i][j]; // Vermelho
-            fwrite(pixel, 1, 3, f);
+            fwrite(&img->b[i][j], 1, 1, f); // Azul
+            fwrite(&img->g[i][j], 1, 1, f); // Verde
+            fwrite(&img->r[i][j], 1, 1, f); // Vermelho
         }
     }
 }

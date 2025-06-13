@@ -11,6 +11,8 @@ void salvaMascara(GRAVADOR* gravador);
 
 GRAVADOR* criarGravador(FILE* f) {
     GRAVADOR* gravador = (GRAVADOR*) malloc(sizeof(GRAVADOR));
+    if (gravador == NULL) return NULL;
+
     gravador->mascara = 0;
     gravador->qtd_atual = 0;
     gravador->arquivo = f;
@@ -55,16 +57,24 @@ void finalizarGravacao(GRAVADOR* gravador) {
     if (gravador->qtd_atual > 0) salvaMascara(gravador);
 }
 
-// ao inves de gravar direto, talvez salvar cada mascara em um array na memoria e dps gravar tudo
 void salvaMascara(GRAVADOR* gravador) {
     if (gravador->qtd_atual == 32) {
         // grava tudo
         fwrite(&(gravador->mascara), sizeof(uint32_t), 1, gravador->arquivo);
+        printf("GRAVEI NA MEMÓRIA-> ");
+        print_binary(gravador->mascara, 32);
     } else {
         gravador->mascara <<= (32-gravador->qtd_atual);
         fwrite(&(gravador->mascara), sizeof(uint32_t), 1, gravador->arquivo);
+        printf("GRAVEI NA MEMÓRIA-> ");
+        print_binary(gravador->mascara, 32);
     }
 
     gravador->mascara = 0;
     gravador->qtd_atual = 0;
+}
+
+void desalocarGravador(GRAVADOR** gravador) {
+    free(*gravador);
+    *gravador = NULL;
 }
