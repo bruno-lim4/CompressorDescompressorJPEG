@@ -22,7 +22,7 @@ IMAGEM* descomprimeImagem(FILE* in){
     img->w = get_biWidth(img->infoHeader);
     img->h = get_biHeight(img->infoHeader);
 
-    printf("dimensao = (%d, %d)", img->w, img->h);
+    printf("dimensao = (%d, %d)", img->h, img->w);
 
     // Número de blocos 8x8 da componente Y.
     int num_blocos_Y = (img->h/8)*(img->w/8);
@@ -57,6 +57,12 @@ IMAGEM* descomprimeImagem(FILE* in){
         DC_anterior = blocos_em_vetor_Y[i][0];
 
         decodificaAC(blocos_em_vetor_Y[i], leitor);
+
+        printf("vetor de 64 pos: ");
+        for(int j = 0; j < 64; j++){
+            printf(" %d", blocos_em_vetor_Y[i][j]);
+        }
+        printf("\n\n");
     }
 
     ehPrimeiroDC = 1;
@@ -66,16 +72,32 @@ IMAGEM* descomprimeImagem(FILE* in){
         DC_anterior = blocos_em_vetor_Cb[i][0];
 
         decodificaAC(blocos_em_vetor_Cb[i], leitor);
+
+        printf("vetor de 64 pos: ");
+        for(int j = 0; j < 64; j++){
+            printf(" %d", blocos_em_vetor_Cb[i][j]);
+        }
+        printf("\n\n");
+
     }
 
     ehPrimeiroDC = 1;
     DC_anterior = 0;
+    printf("numblocos = %d\n\n", num_blocos_CbCr);
     for(int i = 0; i < num_blocos_CbCr; i++){
+        //printf("i = %d\n", i);
         decodificaDC(&(blocos_em_vetor_Cr[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Cr[i][0];
 
         decodificaAC(blocos_em_vetor_Cr[i], leitor);
+
+        printf("vetor de 64 pos: ");
+        for(int j = 0; j < 64; j++){
+            printf(" %d", blocos_em_vetor_Cr[i][j]);
+        }
+        printf("\n\n");
     }
+    exit(1);
 
     alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
     alocarMatriz_unsignedChar(&(img->g), img->h, img->w);
@@ -94,8 +116,8 @@ IMAGEM* descomprimeImagem(FILE* in){
         quantizacao_inversa = desfazQuantizacao(bloco);
 
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->y, 8*((i*8)/img->h), (i*8)%img->w, DCT_inversa);
-        printf("[%d][%d]\n", 8*((i*8)/img->h), (i*8)%img->w);
+        gravaBloco(img->y, 8*((i*8)/img->w), (i*8)%img->w, DCT_inversa);
+        //printf("Y[%d][%d]\n", 8*((i*8)/img->w), (i*8)%img->w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -107,7 +129,8 @@ IMAGEM* descomprimeImagem(FILE* in){
         bloco = monta_bloco(blocos_em_vetor_Cb[i], 'B');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->cb, 8*((i*8)/img->cbcr_h), (i*8)%img->cbcr_w, DCT_inversa);
+        gravaBloco(img->cb, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
+        //printf("Cb[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -119,8 +142,8 @@ IMAGEM* descomprimeImagem(FILE* in){
         bloco = monta_bloco(blocos_em_vetor_Cr[i], 'R');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->cr, 8*((i*8)/img->cbcr_h), (i*8)%img->cbcr_w, DCT_inversa);
-        printf("[%d][%d]\n", 8*((i*8)/img->cbcr_h), (i*8)%img->cbcr_w);
+        gravaBloco(img->cr, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
+        //printf("Cr[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -143,8 +166,12 @@ IMAGEM* descomprimeImagem(FILE* in){
         }
     }
 
+    printf("chegou aqui\n");
+
     encerrarDecodificacao(); // Desaloca as árvores.
     destruirLeitor(&leitor);
+
+    printf("chegou aqui 2\n");
 
     desalocarMatriz_int(&blocos_em_vetor_Y, num_blocos_Y);
     desalocarMatriz_int(&blocos_em_vetor_Cb, num_blocos_CbCr);

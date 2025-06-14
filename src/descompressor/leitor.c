@@ -1,4 +1,5 @@
 #include "leitor.h"
+#include "util.h"
 
 struct leitor_{
     FILE* f;
@@ -18,9 +19,8 @@ LEITOR* criarLeitor(FILE *f){
 void carregarBuffer(LEITOR* l){
     int numBytesLidos = fread(&(l->buffer), 1, 4, l->f); // Tenta ler 4 bytes do arquivo.
     l->qtdBitsBuffer = 8*numBytesLidos; // Se estiver no fim do arquivo, pode não ter 4 bytes para ler.
-    //printf("numBytesLidos: %d tamBuffer: %d\n\n", numBytesLidos, l->qtdBitsBuffer);
-    //printf("buffer: ");
-    //printarUint_32(l->buffer);
+    printf("LI DA MEMÓRIA-> ");
+    print_binary(l->buffer, 32);
 }
 
 int lerBit(LEITOR *l){
@@ -59,6 +59,8 @@ int lerValor(int numBits, LEITOR* l){
 }
 
 void destruirLeitor(LEITOR** l){
-    free(*l);
-    l = NULL;
+    if(*l != NULL){
+        free(*l);
+        *l = NULL;
+    }
 }
