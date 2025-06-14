@@ -36,4 +36,4 @@ arvore:
 	gcc -c ./utils/arvore.c -o ./utils/arvore.o
 
 clean:
-	rm compressor descompressor ./utils/*.o
+	rm compressor descompressor ./utils/*.o ./imgComprimida/* ./imgDescomprimida/*

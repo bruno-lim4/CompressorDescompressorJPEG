@@ -56,8 +56,10 @@ IMAGEM* criarImagem(FILE* f) {
 
     // calcula as dimensoes que cb,cr vao ter
     // e "corrige" para ser multiplo de 8
-    img->cbcr_w = (img->w)/2 + (8 - ((img->w)/2)%8);
-    img->cbcr_h = (img->h)/2 + (8 - ((img->h)/2)%8);
+    img->cbcr_w = (img->w)/2 + ( (((img->w)/2)%8) ? (8 - ((img->w)/2)%8) : 0);
+    img->cbcr_h = (img->h)/2 + ( (((img->h)/2)%8) ? (8 - ((img->h)/2)%8) : 0);
+
+    printf("cbcrNovo = (%d, %d)\n", img->cbcr_h, img->cbcr_w);
 
     // aloca essas matrizes
     alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
@@ -106,6 +108,17 @@ IMAGEM* criarImagem(FILE* f) {
         for(int j = old_h; j < img->cbcr_h; j++){
             (img->cb)[j][k] = value_cb;
             (img->cr)[j][k] = value_cr;
+        }
+    }
+
+    // antes de retornar, coloca todos os valores no intervalo [0, 255]
+    for(int i = 0; i < img->h; i++) {
+        for(int j = 0; j < img->w; j++) {
+            if (i < img->cbcr_w && j < img->cbcr_w) {
+                img->cb[i][j] =  max(0, min(255, img->cb[i][j]));
+                img->cr[i][j] =  max(0, min(255, img->cr[i][j]));
+            }
+            img->y[i][j] =  max(0, min(255, img->y[i][j]));
         }
     }
 
@@ -268,6 +281,8 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     img->cbcr_h = 8*(img->h/2/8 + bloco_hExtra);
     img->cbcr_w = 8*(img->w/2/8 + bloco_wExtra);
 
+    printf("cbcr = (%d, %d)\n", img->cbcr_h, img->cbcr_w);
+
     int** blocos_em_vetor_Cb = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
     int** blocos_em_vetor_Cr = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
     for(int i = 0; i < num_blocos_CbCr; i++){
@@ -353,32 +368,19 @@ IMAGEM* descomprimeImagem(FILE* in, FILE* out){
     }
 
     // Transformação para RGB.
-    int rgb_i = 0, rgb_j = 0;
-    for(int i = 0; i < img->h/2; i++){
-        rgb_j = 0;
-        double constante;
-        for(int j = 0; j < img->w/2; j++){
-            constante = (img->cr)[i][j] - 128;
-            (img->r)[rgb_i][rgb_j] = (constante)*1.402 + (img->y)[rgb_i][rgb_j];
-            (img->r)[rgb_i][rgb_j+1] = (constante)*1.402 + (img->y)[rgb_i][rgb_j+1];
-            (img->r)[rgb_i+1][rgb_j] = (constante)*1.402 + (img->y)[rgb_i+1][rgb_j];
-            (img->r)[rgb_i+1][rgb_j+1] = (constante)*1.402 + (img->y)[rgb_i+1][rgb_j+1];
+    for(int i = 0; i < img->h; i++) {
+        for(int j = 0; j < img->w; j++) {
+            double cr = (img->cr)[i/2][j/2] - 128.0;
+            double cb = (img->cb)[i/2][j/2] - 128.0;
 
-            constante = (img->cb)[i][j] - 128;
-            (img->b)[rgb_i][rgb_j] = (constante)*1.772 + (img->y)[rgb_i][rgb_j];
-            (img->b)[rgb_i][rgb_j+1] = (constante)*1.772 + (img->y)[rgb_i][rgb_j+1];
-            (img->b)[rgb_i+1][rgb_j] = (constante)*1.772 + (img->y)[rgb_i+1][rgb_j];
-            (img->b)[rgb_i+1][rgb_j+1] = (constante)*1.772 + (img->y)[rgb_i+1][rgb_j+1];
+            double r_ = (img->y)[i][j] + 1.402*cr;
+            double g_ = (img->y)[i][j] - 0.344*cb - 0.714*cr;
+            double b_ = (img->y)[i][j] + 1.772*cb;
 
-            constante = -0.344136*((img->cb)[i][j] - 128) - 0.714136*((img->cr)[i][j] - 128);
-            (img->g)[rgb_i][rgb_j] = (img->y)[rgb_i][rgb_j] + constante;
-            (img->g)[rgb_i][rgb_j+1] = (img->y)[rgb_i][rgb_j+1] + constante;
-            (img->g)[rgb_i+1][rgb_j] = (img->y)[rgb_i+1][rgb_j] + constante;
-            (img->g)[rgb_i+1][rgb_j+1] = (img->y)[rgb_i+1][rgb_j+1] + constante;
-
-            rgb_j += 2;
+            (img->r)[i][j] = (unsigned char) max(0, min(255, r_));
+            (img->g)[i][j] = (unsigned char) max(0, min(255, g_));
+            (img->b)[i][j] = (unsigned char) max(0, min(255, b_));
         }
-        rgb_i += 2;
     }
 
     encerrarDecodificacao(); // Desaloca as árvores.
