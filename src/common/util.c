@@ -11,7 +11,7 @@ void alocarMatriz_double(double*** m, int h, int w) {
 }
 
 void alocarMatriz_unsignedChar(unsigned char*** m, int h, int w) {
-    *m = (unsigned char **) malloc(h * sizeof(unsigned char *));
+    *m = (unsigned char **) malloc(h*sizeof(unsigned char *));
     if (*m == NULL) return;
 
     for(int i = 0; i < h; i++) {
