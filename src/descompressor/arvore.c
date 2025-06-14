@@ -261,7 +261,7 @@ ARVORE_DC* criarArvoreDC(){
     arv->raiz = criarNo_DC(-1);
 
     for(int cat = 0; cat < 11; cat++){
-        inserirCatDC(arv, tabela_DC[cat], calculaComprimento_DC(cat), criarNo_DC(cat));
+        inserirCatDC(arv, tabela_DC[cat], calculaComprimento_DC(cat), cat);
     }
 
     return arv;
@@ -277,7 +277,7 @@ NO_DC* criarNo_DC(int cat){
     return no;
 }
 
-void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no){
+void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, int cat){
     NO_DC* atual = arv->raiz;
     for (int i = comprimento - 1; i >= 0; i--) {
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
@@ -294,7 +294,7 @@ void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no){
         }
     }
     // Chegou na folha.
-    atual->cat = no->cat;
+    atual->cat = cat;
     atual->ehFolha = 1;
 }
 
@@ -344,14 +344,14 @@ ARVORE_AC* criarArvoreAC(){
 
     for(int runlength = 0; runlength < 16; runlength++){
         for(int size = 0; size < 10; size++){
-            inserirPrefixoAC(arv, tabela_AC[runlength][size], calculaComprimento_AC(runlength, size), criarNo_AC(runlength, size+1));
+            inserirPrefixoAC(arv, tabela_AC[runlength][size], calculaComprimento_AC(runlength, size), runlength, size+1);
         }
     }
 
     // EOB.
-    inserirPrefixoAC(arv, 0b1010, 4, criarNo_AC(0, 0));
+    inserirPrefixoAC(arv, 0b1010, 4, 0, 0);
     // Sequência de 15 zeros.
-    inserirPrefixoAC(arv, 0b11111111011, 11, criarNo_AC(15, 0));
+    inserirPrefixoAC(arv, 0b11111111011, 11, 15, 0);
 
     return arv;
 }
@@ -368,7 +368,7 @@ NO_AC* criarNo_AC(int runlength, int size){
     return no;
 }
 
-void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, NO_AC* no){
+void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, int run_length, int size){
     NO_AC* atual = arv->raiz;
     for (int i = comprimento - 1; i >= 0; i--) {
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
@@ -385,8 +385,8 @@ void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, NO_AC* no){
         }
     }
     // Chegou na folha.
-    atual->runlength = no->runlength;
-    atual->size = no->size;
+    atual->runlength = run_length;
+    atual->size = size;
     atual->ehFolha = 1;
 }
 

@@ -17,7 +17,7 @@ void printDC(ARVORE_DC* raiz);
 
 ARVORE_DC* criarArvoreDC();
 NO_DC* criarNo_DC(int cat);
-void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, NO_DC* no);
+void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, int cat);
 NO_DC* getRaiz_DC(ARVORE_DC* arv);
 NO_DC* getFilhoEsquerdoDC(NO_DC* no);
 NO_DC* getFilhoDireitoDC(NO_DC* no);
@@ -27,7 +27,7 @@ int ehFolha_DC(NO_DC* no);
 
 ARVORE_AC* criarArvoreAC();
 NO_AC* criarNo_AC(int runlength, int size);
-void inserirPrefixoAC(ARVORE_AC* raiz, int prefixo, int comprimento, NO_AC* no);
+void inserirPrefixoAC(ARVORE_AC* raiz, int prefixo, int comprimento, int runlength, int size);
 NO_AC* getRaiz_AC(ARVORE_AC* arv);
 NO_AC* getFilhoEsquerdoAC(NO_AC* no);
 NO_AC* getFilhoDireitoAC(NO_AC* no);

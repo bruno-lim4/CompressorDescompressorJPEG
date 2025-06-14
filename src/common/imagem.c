@@ -49,6 +49,7 @@ IMAGEM* criarImagem(FILE* f) {
         }
     }
 
+
     // calcula as dimensoes que cb,cr vao ter
     // e "corrige" para ser multiplo de 8
     img->cbcr_w = (img->w)/2 + ( (((img->w)/2)%8) ? (8 - ((img->w)/2)%8) : 0);
@@ -56,8 +57,8 @@ IMAGEM* criarImagem(FILE* f) {
 
     printf("cbcrNovo = (%d, %d)\n", img->cbcr_h, img->cbcr_w);
     // aloca essas matrizes
-    alocarMatriz_double(&(img->cb), img->cbcr_w, img->cbcr_h);
-    alocarMatriz_double(&(img->cr), img->cbcr_w, img->cbcr_h);
+    alocarMatriz_double(&(img->cb), img->cbcr_h, img->cbcr_w);
+    alocarMatriz_double(&(img->cr), img->cbcr_h, img->cbcr_w);
 
     int new_i = 0;
 
@@ -75,7 +76,6 @@ IMAGEM* criarImagem(FILE* f) {
         }
         new_i++;
     }
-
 
     // agora copia linhas/coluna para preencher 
     // o espaço que falta (pq precisa ser mult de 8)
@@ -108,7 +108,7 @@ IMAGEM* criarImagem(FILE* f) {
     // antes de retornar, coloca todos os valores no intervalo [0, 255]
     for(int i = 0; i < img->h; i++) {
         for(int j = 0; j < img->w; j++) {
-            if (i < img->cbcr_w && j < img->cbcr_w) {
+            if (i < img->cbcr_h && j < img->cbcr_w) {
                 img->cb[i][j] =  max(0, min(255, img->cb[i][j]));
                 img->cr[i][j] =  max(0, min(255, img->cr[i][j]));
             }
