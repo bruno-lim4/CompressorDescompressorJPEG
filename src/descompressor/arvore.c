@@ -351,7 +351,7 @@ ARVORE_AC* criarArvoreAC(){
     // EOB.
     inserirPrefixoAC(arv, 0b1010, 4, 0, 0);
     // Sequência de 15 zeros.
-    inserirPrefixoAC(arv, 0b11111111011, 11, 15, 0);
+    inserirPrefixoAC(arv, 0b111111110111, 12, 15, 0);
 
     return arv;
 }

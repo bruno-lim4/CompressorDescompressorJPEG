@@ -94,8 +94,8 @@ IMAGEM* descomprimeImagem(FILE* in){
         quantizacao_inversa = desfazQuantizacao(bloco);
 
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->y, 8*((i*8)/img->h), (i*8)%img->w, DCT_inversa);
-        printf("[%d][%d]\n", 8*((i*8)/img->h), (i*8)%img->w);
+        gravaBloco(img->y, 8*((i*8)/img->w), (i*8)%img->w, DCT_inversa);
+        printf("[%d][%d]\n", 8*((i*8)/img->w), (i*8)%img->w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -107,7 +107,7 @@ IMAGEM* descomprimeImagem(FILE* in){
         bloco = monta_bloco(blocos_em_vetor_Cb[i], 'B');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->cb, 8*((i*8)/img->cbcr_h), (i*8)%img->cbcr_w, DCT_inversa);
+        gravaBloco(img->cb, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -119,8 +119,8 @@ IMAGEM* descomprimeImagem(FILE* in){
         bloco = monta_bloco(blocos_em_vetor_Cr[i], 'R');
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
-        gravaBloco(img->cr, 8*((i*8)/img->cbcr_h), (i*8)%img->cbcr_w, DCT_inversa);
-        printf("[%d][%d]\n", 8*((i*8)/img->cbcr_h), (i*8)%img->cbcr_w);
+        gravaBloco(img->cr, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
+        printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
