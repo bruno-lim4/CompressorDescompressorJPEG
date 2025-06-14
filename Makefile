@@ -1,39 +1,62 @@
-all: compressor descompressor
+# Diretórios
+SRC_DIR := src
+BIN_DIR := bin
+OUT_DIR := output
+COMMON_DIR := $(SRC_DIR)/common
+COMPRESSOR_DIR := $(SRC_DIR)/compressor
+DECOMPRESSOR_DIR := $(SRC_DIR)/descompressor
 
-compressor: consts util codifica gravador bloco header imagem decodifica leitor arvore
-	gcc -std=c99 compressor.c -o compressor ./utils/header.o ./utils/codifica.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o ./utils/gravador.o ./utils/decodifica.o ./utils/leitor.o ./utils/arvore.o
+# Compilador e flags
+CC := gcc
+CFLAGS := -Wall -Wextra -I$(COMMON_DIR) -I$(COMPRESSOR_DIR) -I$(DECOMPRESSOR_DIR)
 
-descompressor: consts util codifica gravador bloco header imagem decodifica leitor arvore
-	gcc -std=c99 descompressor.c -o descompressor ./utils/header.o ./utils/codifica.o ./utils/imagem.o ./utils/util.o ./utils/consts.o ./utils/bloco.o ./utils/gravador.o ./utils/decodifica.o ./utils/leitor.o ./utils/arvore.o
+# Arquivos-fonte comuns
+COMMON_SRC_COMPRESS := \
+    $(COMMON_DIR)/bloco.c \
+    $(COMMON_DIR)/consts.c \
+    $(COMMON_DIR)/header.c \
+    $(COMMON_DIR)/util.c \
+    $(COMMON_DIR)/imagem.c \
+    $(COMMON_DIR)/imagem_comprimir.c
 
-imagem:
-	gcc -c ./utils/imagem.c -o ./utils/imagem.o
+COMMON_SRC_DECOMPRESS := \
+    $(COMMON_DIR)/bloco.c \
+    $(COMMON_DIR)/consts.c \
+    $(COMMON_DIR)/header.c \
+    $(COMMON_DIR)/util.c \
+    $(COMMON_DIR)/imagem.c \
+    $(COMMON_DIR)/imagem_descomprimir.c
 
-header:
-	gcc -c ./utils/header.c -o ./utils/header.o
+# Arquivos do compressor
+COMPRESSOR_SRC := $(SRC_DIR)/compressor.c \
+                  $(wildcard $(COMPRESSOR_DIR)/*.c) \
+                  $(COMMON_SRC_COMPRESS)
 
-bloco:
-	gcc -c ./utils/bloco.c -o ./utils/bloco.o
+# Arquivos do descompressor
+DECOMPRESSOR_SRC := $(SRC_DIR)/descompressor.c \
+                    $(wildcard $(DECOMPRESSOR_DIR)/*.c) \
+                    $(COMMON_SRC_DECOMPRESS)
 
-util:
-	gcc -c ./utils/util.c -o ./utils/util.o
+# Alvos
+all: $(BIN_DIR)/compressor $(BIN_DIR)/descompressor
 
-consts:
-	gcc -c ./utils/consts.c -o ./utils/consts.o
+$(BIN_DIR)/compressor: $(COMPRESSOR_SRC)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $^ -o $@
 
-codifica:
-	gcc -c ./utils/codifica.c -o ./utils/codifica.o
+$(BIN_DIR)/descompressor: $(DECOMPRESSOR_SRC)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $^ -o $@
 
-decodifica:
-	gcc -c ./utils/decodifica.c -o ./utils/decodifica.o
-
-gravador:
-	gcc -c ./utils/gravador.c -o ./utils/gravador.o
-
-leitor:
-	gcc -c ./utils/leitor.c -o ./utils/leitor.o
-arvore:
-	gcc -c ./utils/arvore.c -o ./utils/arvore.o
-
+# Limpeza agressiva
 clean:
-	rm compressor descompressor ./utils/*.o ./imgComprimida/* ./imgDescomprimida/*
+	rm -rf $(BIN_DIR)
+
+# Ajuda
+help:
+	@echo "Alvos disponíveis:"
+	@echo "  make            - Compila compressor e descompressor"
+	@echo "  make clean      - Remove binários, arquivos de saída e diretórios"
+	@echo "  make help       - Exibe esta ajuda"
+
+.PHONY: all clean help
