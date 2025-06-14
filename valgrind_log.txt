@@ -1,0 +1,15 @@
+==134099== Memcheck, a memory error detector
+==134099== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==134099== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==134099== Command: ./bin/compressor -i imgs/carneiro.bmp -o output/out.bin
+==134099== Parent PID: 896
+==134099== 
+==134099== 
+==134099== HEAP SUMMARY:
+==134099==     in use at exit: 0 bytes in 0 blocks
+==134099==   total heap usage: 303,631 allocs, 303,631 frees, 23,528,520 bytes allocated
+==134099== 
+==134099== All heap blocks were freed -- no leaks are possible
+==134099== 
+==134099== For lists of detected and suppressed errors, rerun with: -s
+==134099== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

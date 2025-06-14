@@ -17,6 +17,7 @@ uint32_t codifica_infoDC(int value, int* qtd_bits) {
     else if (value_abs <= 255) cat = '8';
     else if (value_abs <= 511) cat = '9';
     else if (value_abs <= 1023) cat = 'A';
+    else cat = 'A';
 
     uint32_t res = 0;
     int qtd = 0;
@@ -152,6 +153,7 @@ uint32_t codifica_infoAC(int qtd_zero, int value, int* qtd_bits) {
     else if (value_abs <= 255) cat = '8';
     else if (value_abs <= 511) cat = '9';
     else if (value_abs <= 1023) cat = 'A';
+    else cat='A';
 
     int qtd_pref;
     uint32_t pref = get_prefixoAC(qtd_zero, cat, &qtd_pref);

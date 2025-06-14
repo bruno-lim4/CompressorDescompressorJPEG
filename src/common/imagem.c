@@ -41,9 +41,12 @@ IMAGEM* criarImagem(FILE* f) {
     // le r,g,b e ja calcula luminancia
     for(int i = 0; i < img->h; i++) {
         for(int j = 0; j < img->w; j++) {
-            fread(&((img->b)[i][j]), sizeof(unsigned char), 1, f);
-            fread(&((img->g)[i][j]), sizeof(unsigned char), 1, f);
-            fread(&((img->r)[i][j]), sizeof(unsigned char), 1, f);
+            if (fread(&img->b[i][j], sizeof(unsigned char), 1, f) != 1 ||
+                fread(&img->g[i][j], sizeof(unsigned char), 1, f) != 1 ||
+                fread(&img->r[i][j], sizeof(unsigned char), 1, f) != 1) {
+                fprintf(stderr, "Erro: fread falhou na posição (%d, %d)\n", i, j);
+                exit(EXIT_FAILURE);
+            }
 
             (img->y)[i][j] = 0.299*(double)(img->r)[i][j] + 0.587*(double)(img->g)[i][j] + 0.114*(double)(img->b)[i][j];
         }
