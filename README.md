@@ -1,80 +1,87 @@
-# CompressorDescompressorJPEG
+# Compressor/Descompressor de Imagens (Estilo JPEG)
 
-Este projeto implementa um compressor e descompressor de imagens no formato BMP, utilizando técnicas baseadas no padrão JPEG, como a Transformada Discreta de Cosseno (DCT), quantização e codificação Huffman.
+Uma implementação em C do pipeline de compressão e descompressão de imagens, aplicando conceitos fundamentais do padrão JPEG em arquivos de formato BMP.
 
-## Índice
+## Sobre o Projeto
 
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Funcionalidades](#funcionalidades)
-- [Requisitos](#requisitos)
-- [Como Compilar](#como-compilar)
-- [Como Usar](#como-usar)
+Este projeto foi desenvolvido para explorar e aplicar as etapas clássicas de compressão de imagem com perdas. Ele lê uma imagem BMP não compactada, a processa através de um pipeline de compressão e gera um arquivo binário customizado (`.bin`). O processo inverso também é implementado, reconstruindo a imagem a partir do arquivo compactado.
 
-## Estrutura do Projeto
-
-A estrutura do projeto é organizada da seguinte forma:
-
-- **Compressor**: Localizado em `src/compressor/`, possui funções e estruturas utilizadas exclusivamente pelo compressor.
-- **Descompressor**: Localizado em `src/descompressor/`, possui funções e estruturas utilizadas exclusivamente pelo descompressor.
-- **Biblioteca Comum**: Localizada em `src/common/`, contém funções e estruturas compartilhadas entre o compressor e o descompressor, como manipulação de blocos, cabeçalhos BMP e operações em cadeias de bits, estrutura da Imagem (e suas matrizes de cor)...
-
-## Funcionalidades
-
-### Compressão
-- Conversão de imagens BMP para o espaço de cores YCbCr, com downsampling 4:2:0.
-- Aplicação da Transformada Discreta de Cosseno (DCT) em blocos 8x8.
-- Quantização dos coeficientes da DCT.
-- Aplicação de um conjunto de codificações entrópicas para a compressão.
-
-### Descompressão
-- Decodificação de codificações entrópicas aplicadas na compressão.
-- Desquantização e aplicação da DCT inversa.
-- Reconstrução da imagem no espaço de cores RGB.
-
-## Requisitos
-
-- **Compilador**: GCC (ou outro compilador C compatível).
-- **Sistema Operacional**: Linux ou outro sistema compatível com `Makefile`.
-
-## Como Compilar
-
-Use o `Makefile` para compilar o projeto. Os binários gerados serão armazenados no diretório `bin/`.
-
-1. Para compilar o compressor e o descompressor:
-   ```bash
-   make
-   ```
-
-2. Para limpar os arquivos gerados durante a compilação:
-   ```bash
-   make clean
-   ```
-
-## Como Usar
-
-Após compilar o projeto, você pode executar o compressor e o descompressor utilizando os binários gerados no diretório `bin/`.
-
-### Compressor
-Para comprimir uma imagem BMP, execute:
-```bash
-./bin/compressor -i <caminho_da_imagem_bmp> -o <caminho_saida_arquivo_bin_compactado>
+### Fluxo de Compressão
+```
+BMP  ->  RGB para YCbCr  ->  Downsampling 4:2:0  ->  DCT  ->  Quantização  ->  Codificação (RLE + Huffman)  ->  Arquivo .bin
+```
+### Fluxo de Descompressão
+```
+Arquivo .bin  ->  Decodificação (RLE + Huffman)  ->  Dequantização  ->  DCT Inversa  ->  Upsampling  ->  YCbCr para RGB  ->  BMP
 ```
 
-Exemplo:
+## Principais Funcionalidades
+
+* **Conversão de Cores**: Converte imagens do espaço de cores **RGB** para **YCbCr**, separando luminância (Y) de crominância (Cb, Cr).
+* **Subamostragem (Downsampling)**: Aplica o downsampling de crominância **4:2:0** para reduzir a quantidade de dados de cor, explorando a menor sensibilidade do olho humano a variações de cor.
+* **Transformada Discreta de Cosseno (DCT)**: Processa a imagem em blocos 8x8, transformando dados espaciais em dados de frequência, o que concentra a maior parte da energia nos coeficientes de baixa frequência.
+* **Quantização**: Reduz a precisão dos coeficientes da DCT, descartando informações menos perceptíveis. Esta é a principal etapa de compressão com perdas.
+* **Codificação Entrópica**:
+    * **RLE (Run-Length Encoding)** para os coeficientes AC, compactando sequências de zeros.
+    * **Codificação Huffman** para os coeficientes DC e os valores resultantes do RLE, atribuindo códigos menores aos valores mais frequentes. Usamos uma tabela pronta.
+
+## 📂 Estrutura do Projeto
+
+O código-fonte está organizado de forma modular para separar as responsabilidades do compressor, do descompressor e do código comum.
+
+```
+.
+├── bin/                    # Binários gerados
+├── imagens/                # Imagens de exemplo
+├── saida/                  # Arquivos de saída gerados
+├── src/
+│   ├── compressor/         # Lógica exclusiva da compressão
+│   ├── descompressor/      # Lógica exclusiva da descompressão
+│   └── common/             # Funções e estruturas compartilhadas
+└── Makefile
+```
+
+## Começando
+
+Siga as instruções abaixo para compilar e executar o projeto em um ambiente Linux.
+
+### Pré-requisitos
+
+* **GCC** (GNU Compiler Collection)
+* **Make**
+
+### Compilação
+
+Use o `Makefile` para compilar o projeto. Os binários serão gerados no diretório `bin/`.
+
+```bash
+# Compila o compressor e o descompressor
+make
+
+# Para limpar os arquivos gerados (binários e objetos)
+make clean
+```
+
+### Execução
+
+Após a compilação, use os executáveis `compressor` e `decompressor` conforme os exemplos abaixo.
+
+#### Para Comprimir
+```bash
+./bin/compressor -i <caminho_imagem_entrada.bmp> -o <caminho_arquivo_saida.bin>
+```
+
+**Exemplo:**
 ```bash
 ./bin/compressor -i imagens/exemplo.bmp -o saida/exemplo.bin
 ```
 
-### Descompressor
-Para descomprimir um arquivo compactado, execute:
+#### Para Descomprimir
 ```bash
-./bin/decompressor -i <caminho_arquivo_bin_compactado> -o <caminho_saida_imagem_bmp>
+./bin/decompressor -i <caminho_arquivo_entrada.bin> -o <caminho_imagem_saida.bmp>
 ```
-
-Exemplo:
+**Exemplo:**
 ```bash
 ./bin/decompressor -i saida/exemplo.bin -o imagens/exemplo_reconstruido.bmp
 ```
-
-Certifique-se de que os caminhos fornecidos existam e tenham permissões de leitura e escrita.
-
+> **Nota**: Certifique-se de que os diretórios de entrada e saída existam e que você tenha permissões de leitura/escrita.
