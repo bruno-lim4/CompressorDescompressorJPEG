@@ -43,9 +43,6 @@ O código-fonte está organizado de forma modular para separar as responsabilida
 
 ```
 .
-├── bin/                    # Binários gerados
-├── imagens/                # Imagens de exemplo
-├── saida/                  # Arquivos de saída gerados
 ├── src/
 │   ├── compressor/         # Lógica exclusiva da compressão
 │   ├── descompressor/      # Lógica exclusiva da descompressão
@@ -64,7 +61,7 @@ Siga as instruções abaixo para compilar e executar o projeto em um ambiente Li
 
 ### Compilação
 
-Use o `Makefile` para compilar o projeto. Os binários serão gerados no diretório `bin/`.
+Use o `Makefile` para compilar o projeto. Os binários serão gerados em um novo diretório `bin/`.
 
 ```bash
 # Compila o compressor e o descompressor
