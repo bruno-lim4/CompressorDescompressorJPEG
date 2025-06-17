@@ -23,9 +23,6 @@ IMAGEM* criarImagem(FILE* f) {
     img->fileHeader = leituraFileHeader(f);
     img->infoHeader = leituraInfoHeader(f);
 
-    printFileHeader(img->fileHeader);
-    printInfoHeader(img->infoHeader);
-
     // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
     img->h = get_biHeight(img->infoHeader);
@@ -58,7 +55,6 @@ IMAGEM* criarImagem(FILE* f) {
     img->cbcr_w = (img->w)/2 + ( (((img->w)/2)%8) ? (8 - ((img->w)/2)%8) : 0);
     img->cbcr_h = (img->h)/2 + ( (((img->h)/2)%8) ? (8 - ((img->h)/2)%8) : 0);
 
-    printf("cbcrNovo = (%d, %d)\n", img->cbcr_h, img->cbcr_w);
     // aloca essas matrizes
     alocarMatriz_double(&(img->cb), img->cbcr_h, img->cbcr_w);
     alocarMatriz_double(&(img->cr), img->cbcr_h, img->cbcr_w);

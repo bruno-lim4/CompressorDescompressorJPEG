@@ -61,13 +61,9 @@ void salvaMascara(GRAVADOR* gravador) {
     if (gravador->qtd_atual == 32) {
         // grava tudo
         fwrite(&(gravador->mascara), sizeof(uint32_t), 1, gravador->arquivo);
-        printf("GRAVEI NA MEMÓRIA-> ");
-        print_binary(gravador->mascara, 32);
     } else {
         gravador->mascara <<= (32-gravador->qtd_atual);
         fwrite(&(gravador->mascara), sizeof(uint32_t), 1, gravador->arquivo);
-        printf("GRAVEI NA MEMÓRIA-> ");
-        print_binary(gravador->mascara, 32);
     }
 
     gravador->mascara = 0;

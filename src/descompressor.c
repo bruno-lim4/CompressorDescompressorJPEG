@@ -1,7 +1,7 @@
 #include "./common/imagem_descomprimir.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>  // getopt()
+#include <unistd.h>  
 
 void print_help() {
     printf("Uso: descompressor -i <input.bin> -o <output.bmp>\n");

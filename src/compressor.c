@@ -1,7 +1,7 @@
 #include "./common/imagem_comprimir.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>  // getopt()
+#include <unistd.h>  
 
 void print_help() {
     printf("Uso: compressor -i <input.bmp> -o <output.bin>\n");

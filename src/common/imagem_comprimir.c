@@ -28,17 +28,9 @@ void comprimeImagem(IMAGEM* img, FILE* f) {
 }
 
 void codifica_gravaVetor(GRAVADOR* gravador, int* vetor, int valor_difDC) {
-    printf("\nvetor de 64 pos (dcDif: %d): ", valor_difDC);
-    for(int i = 0; i < 64; i++) {
-        printf("%d ", vetor[i]);
-    }
-    printf("\n");
-
     // grava DC
     int qtd_DC;
-    printf("codifica DC=%d: ", valor_difDC);
     uint32_t codificaDC = codifica_infoDC(valor_difDC, &qtd_DC);
-    print_binary(codificaDC, qtd_DC);
     gravarValor(gravador, codificaDC, qtd_DC);
 
     int qtd_zeros = 0;
@@ -51,18 +43,14 @@ void codifica_gravaVetor(GRAVADOR* gravador, int* vetor, int valor_difDC) {
 
             while(qtd_zeros >= 15) {
                 int qtd_15;
-                printf("codifica AC=(zero=%d, value=%d): ", qtd_zeros, 0);
                 uint32_t pref = codifica_infoAC(15, 0, &qtd_15);
-                print_binary(pref, qtd_15);
                 gravarValor(gravador, pref, qtd_15);
 
                 qtd_zeros -= 15;
             }
 
             int qtd_AC;
-            printf("codifica AC=(zero=%d, value=%d): ", qtd_zeros, valor);
             uint32_t codificaAC = codifica_infoAC(qtd_zeros, valor, &qtd_AC);
-            print_binary(codificaAC, qtd_AC);
             gravarValor(gravador, codificaAC, qtd_AC);
 
             qtd_zeros = 0;
@@ -73,8 +61,6 @@ void codifica_gravaVetor(GRAVADOR* gravador, int* vetor, int valor_difDC) {
     uint32_t codifica_fim;
 
     codifica_fim = codifica_infoAC(0, 0, &qtd_fim);
-    printf("codifica AC - FIM DO BLOCO: ");
-    print_binary(codifica_fim, qtd_fim);
     gravarValor(gravador, codifica_fim, qtd_fim);
 }
 
