@@ -27,7 +27,7 @@ BMP  ->  RGB para YCbCr  ->  Downsampling 4:2:0  ->  DCT  ->  Quantização  -> 
 Arquivo .bin  ->  Decodificação (RLE + Huffman)  ->  Dequantização  ->  DCT Inversa  ->  Upsampling  ->  YCbCr para RGB  ->  BMP
 ```
 
-## 🌟 Principais Funcionalidades
+## Principais Funcionalidades
 
 * **Conversão de Cores**: Converte imagens do espaço de cores **RGB** para **YCbCr**, separando luminância (Y) de crominância (Cb, Cr).
 * **Subamostragem (Downsampling)**: Aplica o downsampling de crominância **4:2:0** para reduzir a quantidade de dados de cor, explorando a menor sensibilidade do olho humano a variações de cor.
