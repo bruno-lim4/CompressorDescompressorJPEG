@@ -129,6 +129,7 @@ void printMatrizDouble(double** m, int h, int w){
     }
 }
 
+// printa o valor em binario
 void print_binary(int value, int bits) {
     for(int i = bits-1; i >= 0; i--) {
         printf("%d", value&(1<<i) ? 1 : 0);
@@ -136,6 +137,7 @@ void print_binary(int value, int bits) {
     printf("\n");
 }
 
+// pega a qtd de bits menos significativos até o 1 mais significativo
 int get_qtdBits(uint32_t value) {
     for(int i = 31; i >= 0; i--) {
         if ((1<<i)&value) return i+1;
@@ -153,6 +155,7 @@ uint32_t shifta_e_grava(uint32_t a, uint32_t b, int qtd_b) {
     return a;
 }
 
+// retorna o valor em complemento de 1, e a qtd de bits validos (int*)
 uint32_t get_mantissa_comp1(int value, int* qtd) {
     if (value > 0) {
         for(int i = 19; i >= 0; i--) {

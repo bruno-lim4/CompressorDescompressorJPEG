@@ -6,7 +6,7 @@ uint32_t codifica_infoDC(int value, int* qtd_bits) {
     int value_abs = abs(value);
     char cat = 'X';
 
-    // pega a categoria - suponho q no max value <= 1023
+    // pega a categoria
     if (value_abs == 0) cat = '0';
     else if (value_abs == 1) cat = '1';
     else if (value_abs <= 3) cat = '2';
@@ -23,7 +23,7 @@ uint32_t codifica_infoDC(int value, int* qtd_bits) {
     uint32_t res = 0;
     int qtd = 0;
 
-    // guarda o prefixo
+    // guarda o prefixo correspondente
     switch (cat)
     {
     case '0':
@@ -97,10 +97,11 @@ uint32_t codifica_infoDC(int value, int* qtd_bits) {
     return res;
 }
 
-
+// dado o numero de zeros e a categoria, acha o prefixo e retorna, e tambem muda 
+// a qtd_bits para ser o valor de bits validos nesse prefixo
 uint32_t get_prefixoAC(int zeros, char cat, int* qtd_bits) {
+    // se a categoria for 0, a gente considera esses casos especiais
     if (cat == '0') {
-        // nesse caso, só tem 0 até o fim
         if (zeros == 15) {
             *qtd_bits = 12;
             return tabelaAC_quinzeZeros;
@@ -109,6 +110,8 @@ uint32_t get_prefixoAC(int zeros, char cat, int* qtd_bits) {
             return tabelaAC_acabouVetor;
         }
     } 
+
+    // faz algumas transformacao de index pra ser valido da forma q a gente guardou a tabela
 
     int j;
 
@@ -122,6 +125,7 @@ uint32_t get_prefixoAC(int zeros, char cat, int* qtd_bits) {
 
     *qtd_bits = get_qtdBits(pref);
 
+    // nesse caso (cat = 1 ou 2), o prefixo comeca com 0
     if (zeros == 0 && (cat=='1' || cat=='2')) {
         *qtd_bits += 1;
         if (cat=='1') *qtd_bits += 1;
@@ -132,6 +136,7 @@ uint32_t get_prefixoAC(int zeros, char cat, int* qtd_bits) {
 
 
 uint32_t codifica_infoAC(int qtd_zero, int value, int* qtd_bits) {
+    // acho a categoria correspondente
     int value_abs = abs(value);
     char cat = 'X';
 
@@ -148,15 +153,21 @@ uint32_t codifica_infoAC(int qtd_zero, int value, int* qtd_bits) {
     else if (value_abs <= 1023) cat = 'A';
     else cat='A';
 
+    // com a cat, acho o prefixo
     int qtd_pref;
     uint32_t pref = get_prefixoAC(qtd_zero, cat, &qtd_pref);
 
+    // pego o complemento de 1 do meu valor
     int qtd_v; 
     uint32_t mant = get_mantissa_comp1(value, &qtd_v);
 
+    // junto tudo em um valor
     uint32_t res = shifta_e_grava(pref, mant, qtd_v);
 
+    // seto a qtd de bits validos em res
     *qtd_bits = qtd_pref+qtd_v;
+
+    // retorno
     return res;
 }
 

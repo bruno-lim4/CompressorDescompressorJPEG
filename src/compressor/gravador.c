@@ -2,9 +2,9 @@
 #include "util.h"
 
 struct gravador_ {
-    FILE* arquivo;
-    uint32_t mascara;
-    int qtd_atual;
+    FILE* arquivo; // arquivo .bin
+    uint32_t mascara; // mascara (buffer) de 4 bytes
+    int qtd_atual; // qtd de bits que representam um valor valido nesse buffer
 };
 
 void salvaMascara(GRAVADOR* gravador);
@@ -21,7 +21,7 @@ GRAVADOR* criarGravador(FILE* f) {
 }
 
 void gravarValor(GRAVADOR* gravador, uint32_t value, int qtd_bits) {
-    if (gravador->qtd_atual + qtd_bits > 32) {
+    if (gravador->qtd_atual + qtd_bits > 32) { // se nao cabe todo o valor no meu buffer
         int tam1 = 32 - gravador->qtd_atual;
         int tam2 = qtd_bits-tam1;
 
@@ -49,6 +49,7 @@ void gravarValor(GRAVADOR* gravador, uint32_t value, int qtd_bits) {
         return;
     } 
 
+    // cabe no meu buffer
     gravador->mascara = shifta_e_grava(gravador->mascara, value, qtd_bits);
     gravador->qtd_atual += qtd_bits;
 }
@@ -57,11 +58,13 @@ void finalizarGravacao(GRAVADOR* gravador) {
     if (gravador->qtd_atual > 0) salvaMascara(gravador);
 }
 
+// funcao interna que grava o buffer no arquivo
 void salvaMascara(GRAVADOR* gravador) {
     if (gravador->qtd_atual == 32) {
         // grava tudo
         fwrite(&(gravador->mascara), sizeof(uint32_t), 1, gravador->arquivo);
     } else {
+        // nao fechei meu buffer, entao shifto geral pra esquerda e gravo
         gravador->mascara <<= (32-gravador->qtd_atual);
         fwrite(&(gravador->mascara), sizeof(uint32_t), 1, gravador->arquivo);
     }

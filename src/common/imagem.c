@@ -19,6 +19,7 @@ IMAGEM* criarImagem(FILE* f) {
     BMPFILEHEADER* fileHeader = leituraFileHeader(f);
     BMPINFOHEADER* infoHeader = leituraInfoHeader(f);
 
+    // checa se o .bmp tem tam multiplo de 8, 24bits por pixel, e 54 bytes de cabecalho
     if (!checaInfoFileHeader(fileHeader, infoHeader)) {
         fclose(f);
         exit(EXIT_FAILURE);
