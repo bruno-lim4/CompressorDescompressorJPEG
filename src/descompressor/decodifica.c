@@ -5,31 +5,32 @@
 ARVORE_AC* arvoreAC;
 ARVORE_DC* arvoreDC;
 
-void iniciarDecodificacao(){
+void iniciarDecodificacao(){ // Cria as árvores de prefixos AC e DC.
     arvoreAC = criarArvoreAC();
     arvoreDC = criarArvoreDC();
 }
 
-void encerrarDecodificacao(){
+void encerrarDecodificacao(){ // Desaloca as árvores.
     desalocarArvoreAC(&arvoreAC);
     desalocarArvoreDC(&arvoreDC);
 }
 
+// Lê o valor codificado no arquivo de entrada e retorna o valor do coeficiente DC.
 void decodificaDC(int* DC, LEITOR* l, int DC_anterior, int* ehPrimeiroDC){ // Se ehPrimeiroDC == 1, estamos decodificando o primeiro.
     NO_DC* atual = getRaiz_DC(arvoreDC);
 
-    while(!ehFolha_DC(atual)){
-        int bit = lerBit(l);
-        if(bit == 1)
+    while(!ehFolha_DC(atual)){ // Percorre a árvore até chegar numa folha.
+        int bit = lerBit(l); // Lê um bit do arquivo.
+        if(bit == 1) // Se bit == 1, desce para a direita.
             atual = getFilhoDireitoDC(atual);
-        else
+        else // Se bit == 0, desce para a esquerda.
             atual = getFilhoEsquerdoDC(atual);
     }
 
     // Chegou na folha.
-    int dif = lerValor(get_cat_DC(atual), l);
+    int dif = lerValor(get_cat_DC(atual), l); // Lê o valor da diferença codificado no arquivo.
 
-    if(*ehPrimeiroDC){
+    if(*ehPrimeiroDC){ // Se for o primeiro DC, então o coeficiente é igual à diferença decodificada.
         *DC = dif;
         *ehPrimeiroDC = 0;
         return;
@@ -40,12 +41,11 @@ void decodificaDC(int* DC, LEITOR* l, int DC_anterior, int* ehPrimeiroDC){ // Se
     return;
 }
 
-void decodificaAC(int *bloco, LEITOR* l){
+void decodificaAC(int *bloco, LEITOR* l){ // Decodifica os 63 valores AC do bloco.
     int pos = 1; // Posição 0 já tem o coeficiente DC.
     while(pos < 64){ //Loop até preencher o bloco inteiro.
         NO_AC* atual = getRaiz_AC(arvoreAC);
-        while(!ehFolha_AC(atual)){
-            //printf("Debug loop\n");
+        while(!ehFolha_AC(atual)){ // Percorrendo a árvore.
             int bit = lerBit(l);
             if(bit == 1)
                 atual = getFilhoDireitoAC(atual);

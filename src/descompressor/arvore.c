@@ -1,25 +1,7 @@
 #include "arvore.h"
 #include "consts.h"
 
-uint32_t tabela_DC[11];
-int iniciou_tabelaDC;
-
-void iniciarTabelaDC(){
-    tabela_DC[0] = 0b010;
-    tabela_DC[1] = 0b011;
-    tabela_DC[2] = 0b100;
-    tabela_DC[3] = 0b00;
-    tabela_DC[4] = 0b101;
-    tabela_DC[5] = 0b110;
-    tabela_DC[6] = 0b1110;
-    tabela_DC[7] = 0b11110;
-    tabela_DC[8] = 0b111110;
-    tabela_DC[9] = 0b1111110;
-    tabela_DC[10] = 0b11111110;
-
-    iniciou_tabelaDC = 1;
-}
-
+// Structs que definem as árvores.
 struct no_dc_{
     struct no_dc_* esquerda;
     struct no_dc_* direita;
@@ -43,7 +25,7 @@ struct arvore_ac_{
     struct no_ac_* raiz;
 };
 
-int calculaComprimento_DC(int i){
+int calculaComprimento_DC(int i){ // Calcula comprimento do prefixo na posição i da tabela DC.
     if(i == 3)
         return 2;
     if(i == 0 || i == 1)
@@ -51,14 +33,14 @@ int calculaComprimento_DC(int i){
 
     int ultimo_um = 0;
     for(int k = 0; k < 32; k++){
-        if(tabela_DC[i] & (1 << k))
+        if(tabelaDC[i] & (1 << k))
             ultimo_um = k; // guarda posição do último bit igual a 1.
     }
 
     return ultimo_um+1;    
 }
 
-int calculaComprimento_AC(int i, int j){
+int calculaComprimento_AC(int i, int j){ // Calcula comprimento do prefixo na posição [i][j] da tabela AC.
     if(i == 0 && (j == 0 || j == 1))
         return 2;
 
@@ -71,15 +53,13 @@ int calculaComprimento_AC(int i, int j){
     return ultimo_um+1;
 }
 
-ARVORE_DC* criarArvoreDC(){
-    if(!iniciou_tabelaDC)
-        iniciarTabelaDC();
+ARVORE_DC* criarArvoreDC(){ // Inicializa a árvore.
 
     ARVORE_DC* arv = malloc(sizeof(ARVORE_DC));
     arv->raiz = criarNo_DC(-1);
 
     for(int cat = 0; cat < 11; cat++){
-        inserirCatDC(arv, tabela_DC[cat], calculaComprimento_DC(cat), cat);
+        inserirCatDC(arv, tabelaDC[cat], calculaComprimento_DC(cat), cat);
     }
 
     return arv;
@@ -95,7 +75,7 @@ NO_DC* criarNo_DC(int cat){
     return no;
 }
 
-void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, int cat){
+void inserirCatDC(ARVORE_DC* arv, int prefixo, int comprimento, int cat){ // Insere um nó na árvore DC.
     NO_DC* atual = arv->raiz;
     for (int i = comprimento - 1; i >= 0; i--) {
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
@@ -153,7 +133,7 @@ void desalocarArvoreDC(ARVORE_DC** arv){
 }
 
 
-ARVORE_AC* criarArvoreAC(){
+ARVORE_AC* criarArvoreAC(){ // Inicializa a árvore.
     ARVORE_AC* arv = malloc(sizeof(ARVORE_AC));
     arv->raiz = criarNo_AC(-1, -1);
 
@@ -183,7 +163,7 @@ NO_AC* criarNo_AC(int runlength, int size){
     return no;
 }
 
-void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, int run_length, int size){
+void inserirPrefixoAC(ARVORE_AC* arv, int prefixo, int comprimento, int run_length, int size){ // Insere nó na árvore AC.
     NO_AC* atual = arv->raiz;
     for (int i = comprimento - 1; i >= 0; i--) {
         int bit = (prefixo >> i) & 1; // vai pegando os bits do prefixo, da esquerda pra direita, pra percorrer a árvore.
@@ -243,89 +223,4 @@ void desalocarArvoreAC(ARVORE_AC** arv){
     desalocarNosAC((*arv)->raiz);
     free(*arv);
     *arv = NULL;
-}
-
-void printAC_rec(NO_AC* raiz){
-    if(raiz == NULL)
-        return;
-
-    printf("runlength: %d size: %d ehFolha: %d\n", raiz->runlength, raiz->size, raiz->ehFolha);
-
-    printAC_rec(raiz->esquerda);
-    printAC_rec(raiz->direita);
-}
-
-void printAC(ARVORE_AC* arv){
-    printAC_rec(arv->raiz);
-}
-
-void printDC_rec(NO_DC* raiz){
-    if(raiz == NULL)
-        return;
-
-    //if(ehFolha_DC(raiz)){
-        printf("cat: %d ehFolha: %d\n", raiz->cat, raiz->ehFolha);
-    //}
-
-    printDC_rec(raiz->esquerda);
-    printDC_rec(raiz->direita);
-}
-void printDC(ARVORE_DC* arv){
-    printDC_rec(arv->raiz);
-}
-
-int calcularCompInt(int pref){
-    if(pref <= 1)
-        return 2;
-    int ultimo_um = 0;
-    for(int k = 0; k < 32; k++){
-        if(pref & (1 << k))
-            ultimo_um = k; // guarda posição do último bit igual a 1.
-    }
-
-    return ultimo_um+1;    
-}
-
-NO_AC* buscarPrefixo(int pref, NO_AC* atual){
-    /*
-    int comp, pref;
-    if(i == 0 && j == 0){
-        comp = 4;
-        pref = 0b1010;
-    }
-    else if(i == 15 && j == 0){
-        comp = 11;
-        pref = 0b11111111011;
-    }
-    else{
-        comp = calculaComprimento_AC(i, j);
-        pref = tabela_AC[i][j-1];
-    }
-    */
-    int comp = calcularCompInt(pref);
-    printf("comprimento: %d\n", comp);
-    for(int k = 0; k < comp; k++){
-        if(atual == NULL){
-            //printf("NULO! i: %d\n", k);
-            return NULL;
-        }
-        if(pref & (1 << (comp - 1 - k))){
-            if(pref == 0){
-                printf("DESCEU ESQ\n");
-            }
-            //printf("shift: %d tabela: %d direita\n", 1 << (comp - 1 - k), pref);
-            atual = getFilhoDireitoAC(atual);
-        }
-        else{
-            if(pref == 0){
-                printf("DESCEU DIR\n");
-            }
-
-            //printf("shift: %d tabela: %d esquerda\n", 1 << (comp - 1 - k), pref);
-            atual = getFilhoEsquerdoAC(atual);
-        }
-    }
-    //printf("na buscar: run: %d, size: %d\n", get_runlength_AC(atual), get_size_AC(atual));
-
-    return atual;
 }

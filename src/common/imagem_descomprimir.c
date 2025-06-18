@@ -13,20 +13,20 @@ struct imagem_ {
 
 IMAGEM* descomprimeImagem(FILE* in){
     iniciarDecodificacao(); // Inicializa árvores de prefixos.
+
     IMAGEM* img = malloc(sizeof(IMAGEM));
 
     img->fileHeader = leituraFileHeader(in);
     img->infoHeader = leituraInfoHeader(in);
 
-    // pega as dimensoes no cabecalho
+    // Pega as dimensões no cabeçalho.
     img->w = get_biWidth(img->infoHeader);
     img->h = get_biHeight(img->infoHeader);
-
-    printf("dimensao = (%d, %d)", img->w, img->h);
 
     // Número de blocos 8x8 da componente Y.
     int num_blocos_Y = (img->h/8)*(img->w/8);
 
+    // Alocação dos vetores de 64 posições para os blocos de Y.
     int** blocos_em_vetor_Y = (int**) malloc(sizeof(int*)*num_blocos_Y);
     for(int i = 0; i < num_blocos_Y; i++){
         blocos_em_vetor_Y[i] = (int*) malloc(sizeof(int)*64);
@@ -40,8 +40,7 @@ IMAGEM* descomprimeImagem(FILE* in){
     img->cbcr_h = 8*(img->h/2/8 + bloco_hExtra);
     img->cbcr_w = 8*(img->w/2/8 + bloco_wExtra);
 
-    printf("cbcr = (%d, %d)\n", img->cbcr_h, img->cbcr_w);
-
+    // Alocação dos vetores de 64 posições para os blocos de Cb e Cr.
     int** blocos_em_vetor_Cb = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
     int** blocos_em_vetor_Cr = (int**) malloc(sizeof(int*)*num_blocos_CbCr);
     for(int i = 0; i < num_blocos_CbCr; i++){
@@ -49,34 +48,35 @@ IMAGEM* descomprimeImagem(FILE* in){
         blocos_em_vetor_Cr[i] = (int*) malloc(sizeof(int)*64);
     }
 
-    LEITOR* leitor = criarLeitor(in); // Estrutura pra ler um bit por vez.
+    LEITOR* leitor = criarLeitor(in); // Estrutura pra ler um bit por vez do arquivo de entrada.
     int DC_anterior = 0; // Pra somar com a diferença decodificada e achar o próximo DC.
     int ehPrimeiroDC = 1; // Flag pra sinalizar se é o primeiro DC a ser decodificado.
     for(int i = 0; i < num_blocos_Y; i++){
+        // Decodifica o i-ésimo vetor e guarda os valores em blocos_em_vetor_Y[i].
         decodificaDC(&(blocos_em_vetor_Y[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Y[i][0];
-
         decodificaAC(blocos_em_vetor_Y[i], leitor);
     }
 
     ehPrimeiroDC = 1;
     DC_anterior = 0;
     for(int i = 0; i < num_blocos_CbCr; i++){
+        // Faz o mesmo para os valores da componente Cb...
         decodificaDC(&(blocos_em_vetor_Cb[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Cb[i][0];
-
         decodificaAC(blocos_em_vetor_Cb[i], leitor);
     }
 
     ehPrimeiroDC = 1;
     DC_anterior = 0;
     for(int i = 0; i < num_blocos_CbCr; i++){
+        // ...E para os valores da componente Cr.
         decodificaDC(&(blocos_em_vetor_Cr[i][0]), leitor, DC_anterior, &ehPrimeiroDC);
         DC_anterior = blocos_em_vetor_Cr[i][0];
-
         decodificaAC(blocos_em_vetor_Cr[i], leitor);
     }
 
+    // Alocação das matrizes da imagem (RGB e YCbCr).
     alocarMatriz_unsignedChar(&(img->r), img->h, img->w);
     alocarMatriz_unsignedChar(&(img->g), img->h, img->w);
     alocarMatriz_unsignedChar(&(img->b), img->h, img->w);
@@ -90,12 +90,10 @@ IMAGEM* descomprimeImagem(FILE* in){
     // Componente Y.
     for(int i = 0; i < num_blocos_Y; i++){
         bloco = monta_bloco(blocos_em_vetor_Y[i], 'L');
-
         quantizacao_inversa = desfazQuantizacao(bloco);
-
         DCT_inversa = desfazDCT(quantizacao_inversa);
+        // Grava o i-ésimo bloco 8x8 na matriz, começando no índice [8*((i*8)/img->cbcr_w)][(i*8)%img->cbcr_w].
         gravaBloco(img->y, 8*((i*8)/img->w), (i*8)%img->w, DCT_inversa);
-        printf("[%d][%d]\n", 8*((i*8)/img->w), (i*8)%img->w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -120,7 +118,6 @@ IMAGEM* descomprimeImagem(FILE* in){
         quantizacao_inversa = desfazQuantizacao(bloco);
         DCT_inversa = desfazDCT(quantizacao_inversa);
         gravaBloco(img->cr, 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w, DCT_inversa);
-        printf("[%d][%d]\n", 8*((i*8)/img->cbcr_w), (i*8)%img->cbcr_w);
 
         desalocarBloco(&bloco);
         desalocarBloco(&quantizacao_inversa);
@@ -137,6 +134,7 @@ IMAGEM* descomprimeImagem(FILE* in){
             double g_ = (img->y)[i][j] - 0.344*cb - 0.714*cr;
             double b_ = (img->y)[i][j] + 1.772*cb;
 
+            // Garante que os valores estejam no range (0, 255).
             (img->r)[i][j] = (unsigned char) max(0, min(255, r_));
             (img->g)[i][j] = (unsigned char) max(0, min(255, g_));
             (img->b)[i][j] = (unsigned char) max(0, min(255, b_));

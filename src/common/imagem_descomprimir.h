@@ -4,6 +4,7 @@
 #include "imagem.h"
 #include "../descompressor/decodifica.h"
 
-IMAGEM* descomprimeImagem(FILE* in);
+// Recebe o arquivo comprimido e retorna uma struct IMAGEM com a imagem descomprimida.
+IMAGEM* descomprimeImagem(FILE* in); 
 
 #endif

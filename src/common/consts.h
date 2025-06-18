@@ -13,5 +13,6 @@ extern const int quant_crominancia[8][8];
 extern const uint32_t tabelaAC[16][10];
 extern const uint32_t tabelaAC_quinzeZeros;
 extern const uint32_t tabelaAC_acabouVetor;
+extern const uint32_t tabelaDC[11];
 
 #endif
