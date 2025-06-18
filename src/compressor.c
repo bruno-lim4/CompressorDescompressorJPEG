@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>  
+#include <bits/getopt_core.h>
 
 void print_help() {
     printf("Uso: compressor -i <input.bmp> -o <output.bin>\n");
@@ -40,6 +41,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    IMAGEM* img = criarImagem(img_file);
+
     FILE* bin_file = fopen(output_path, "wb");
     if (!bin_file) {
         perror("Erro ao abrir arquivo de saída");
@@ -47,7 +50,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    IMAGEM* img = criarImagem(img_file);
     comprimeImagem(img, bin_file);
 
     desalocarImagem(&img);

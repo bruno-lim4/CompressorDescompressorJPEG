@@ -22,6 +22,7 @@ struct bmpinfoheader_ {
     unsigned int biClrImportant; /* Number of important colors */
 };
 
+
 BMPFILEHEADER* criarFileHeader(unsigned short bfType, unsigned int bfSize, unsigned short bfReserved1, unsigned short bfReserved2, unsigned int bfOffBits) {
     BMPFILEHEADER* fileHeader = (BMPFILEHEADER*) malloc(sizeof(BMPFILEHEADER));
     if (fileHeader == NULL) return NULL;
@@ -31,6 +32,7 @@ BMPFILEHEADER* criarFileHeader(unsigned short bfType, unsigned int bfSize, unsig
     fileHeader->bfReserved1 = bfReserved1;
     fileHeader->bfReserved2 = bfReserved2;
     fileHeader->bfOffBits = bfOffBits;
+
 
     return fileHeader;
 }
@@ -136,3 +138,25 @@ void printInfoHeader(BMPINFOHEADER* infoHeader) {
     printf("biSize: %hu\nbiWidth: %d\nbiHeight: %d\nbiPlanes: %hu\nbiBitCount: %hu\nbiCompression: %hu\nbiSizeImage: %hu\nbiXPelsPerMeter: %d\nbiYPelsPerMeter: %d\nbiClrUsed: %hu\nbiClrImportant: %hu\n", infoHeader->biSize, infoHeader->biWidth, infoHeader->biHeight, infoHeader->biPlanes, infoHeader->biBitCount, infoHeader->biCompression, infoHeader->biSizeImage, infoHeader->biXPelsPerMeter, infoHeader->biYPelsPerMeter, infoHeader->biClrUsed, infoHeader->biClrImportant);
 }
 
+int checaInfoFileHeader(BMPFILEHEADER* fileHeader, BMPINFOHEADER* infoHeader) {
+    if (fileHeader->bfOffBits != 54) {
+        desalocarFileHeader(&fileHeader);
+        desalocarInfoHeader(&infoHeader);
+        fprintf(stderr, "ERRO: imagem tem tamanho de cabeçalho inválido. Deve ser de 54 bytes.");
+        return 0;
+    }
+    if (infoHeader->biBitCount != 24) {
+        desalocarFileHeader(&fileHeader);
+        desalocarInfoHeader(&infoHeader);
+        fprintf(stderr, "ERRO: imagem tem quantidade de bits por pixel inválida. Deve ser de 24 bits.");
+        return 0;
+    }
+    if (infoHeader->biWidth % 8 != 0 || infoHeader->biHeight % 8 != 0) {
+        desalocarFileHeader(&fileHeader);
+        desalocarInfoHeader(&infoHeader);
+        fprintf(stderr, "ERRO: imagem tem que ter largura e altura múltiplas de 8.");
+        return 0;
+    }
+
+    return 1;
+}

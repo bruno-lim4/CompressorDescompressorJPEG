@@ -43,6 +43,7 @@ O código-fonte está organizado de forma modular para separar as responsabilida
 
 ```
 .
+├── imgs/                   # Imagens .bmp válidas para testar
 ├── src/
 │   ├── compressor/         # Lógica exclusiva da compressão
 │   ├── descompressor/      # Lógica exclusiva da descompressão
@@ -93,4 +94,6 @@ Após a compilação, use os executáveis `compressor` e `decompressor` conforme
 ```bash
 ./bin/decompressor -i saida/exemplo.bin -o imagens/exemplo_reconstruido.bmp
 ```
-> **Nota**: Certifique-se de que os diretórios de entrada e saída existam e que você tenha permissões de leitura/escrita.
+> **Nota 1**: Arquivos .bmp devem ter dimensão (largura e altura) múltiplas de 8, além de terem 24 bits de cor para cada pixel e tamanho do cabecalho de 54 bytes.
+
+> **Nota 2**: Certifique-se de que os diretórios de entrada e saída existam e que você tenha permissões de leitura/escrita.

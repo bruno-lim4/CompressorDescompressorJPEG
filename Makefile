@@ -8,7 +8,7 @@ DECOMPRESSOR_DIR := $(SRC_DIR)/descompressor
 
 # Compilador e flags
 CC := gcc
-CFLAGS := -Wall -Wextra -I$(COMMON_DIR) -I$(COMPRESSOR_DIR) -I$(DECOMPRESSOR_DIR)
+CFLAGS := -std=c99 -Wall -Wextra -I$(COMMON_DIR) -I$(COMPRESSOR_DIR) -I$(DECOMPRESSOR_DIR)
 
 # Arquivos-fonte comuns
 COMMON_SRC_COMPRESS := \

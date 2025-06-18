@@ -7,19 +7,26 @@ typedef struct bmpinfoheader_ BMPINFOHEADER;
 #include <stdio.h>
 #include <stdlib.h>
 
-BMPFILEHEADER* criarFileHeader(unsigned short bfType, unsigned int bfSize, unsigned short bfReserved1, unsigned short bfReserved2, unsigned int bfOffBits);
+// lê o FileHeader de um arquivo .bmp e retorna um TAD
 BMPFILEHEADER* leituraFileHeader(FILE* arq);
+// escreve o FileHeader em um arquivo arq
 void escreverFileHeader(FILE* arq, BMPFILEHEADER* fileHeader);
+// desaloca FileHeader
 void desalocarFileHeader(BMPFILEHEADER** fileHeader);
-void printFileHeader(BMPFILEHEADER* fileHeader);
 
+// lê o InfoHeader de um arquivo .bmp e retorna um TAD
 BMPINFOHEADER* leituraInfoHeader(FILE* arq);
-BMPINFOHEADER* criarInfoHeader(unsigned int biSize, int biWidth, int biHeight, unsigned short biPlanes, unsigned short biBitCount, unsigned int biCompression, unsigned int biSizeImage, int biXPelsPerMeter, int biYPelsPerMeter, unsigned int biClrUsed, unsigned int biClrImportant);
+// escreve o InfoHeader em um arquivo arq
 void escreverInfoHeader(FILE* arq, BMPINFOHEADER* infoHeader);
+// pega a largura em pixels. Informacao contida no infoHeader
 int get_biWidth(BMPINFOHEADER* infoHeader);
+// pega a altura em pixels. Informacao contida no infoHeader
 int get_biHeight(BMPINFOHEADER* infoHeader);
+// desaloca infoHeader
 void desalocarInfoHeader(BMPINFOHEADER** infoHeader);
-void printInfoHeader(BMPINFOHEADER* infoHeader);
-void printFileHeader(BMPFILEHEADER* fileHeader);
+
+// checa se dimensao eh multiplo de 8, bits por pixel eh 24, e cabecalho tem 54 bytes.
+// encerra a execucao do programa (com msg de erro) caso contrario
+int checaInfoFileHeader(BMPFILEHEADER* fileHeader, BMPINFOHEADER* infoHeader);
 
 #endif

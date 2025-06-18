@@ -27,57 +27,57 @@ uint32_t codifica_infoDC(int value, int* qtd_bits) {
     switch (cat)
     {
     case '0':
-        res = shifta_e_grava(res, 2, 3);
+        res = shifta_e_grava(res, tabelaDC[0], 3);
         qtd = 3;
         break;
     
     case '1':
-        res = shifta_e_grava(res, 3, 3);
+        res = shifta_e_grava(res, tabelaDC[1], 3);
         qtd = 3;
         break;
     
     case '2':
-        res = shifta_e_grava(res, 4, 3);
+        res = shifta_e_grava(res, tabelaDC[2], 3);
         qtd = 3;
         break;
     
     case '3':
-        res = shifta_e_grava(res, 0, 2);
+        res = shifta_e_grava(res, tabelaDC[3], 2);
         qtd = 2;
         break;
     
     case '4':
-        res = shifta_e_grava(res, 5, 3);
+        res = shifta_e_grava(res, tabelaDC[4], 3);
         qtd = 3;
         break;
 
     case '5':
-        res = shifta_e_grava(res, 6, 3);
+        res = shifta_e_grava(res, tabelaDC[5], 3);
         qtd = 3;
         break;
     
     case '6':
-        res = shifta_e_grava(res, 14, 4);
+        res = shifta_e_grava(res, tabelaDC[6], 4);
         qtd = 4;
         break;
     
     case '7':
-        res = shifta_e_grava(res, 30, 5);
+        res = shifta_e_grava(res, tabelaDC[7], 5);
         qtd = 5;
         break;
     
     case '8':
-        res = shifta_e_grava(res, 62, 6);
+        res = shifta_e_grava(res, tabelaDC[8], 6);
         qtd = 6;
         break;
     
     case '9':
-        res = shifta_e_grava(res, 126, 7);
+        res = shifta_e_grava(res, tabelaDC[9], 7);
         qtd = 7;
         break;
     
     case 'A':
-        res = shifta_e_grava(res, 254, 8);
+        res = shifta_e_grava(res, tabelaDC[10], 8);
         qtd = 8;
         break;
     

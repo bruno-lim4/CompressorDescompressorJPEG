@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>  
+#include <bits/getopt_core.h>
 
 void print_help() {
     printf("Uso: descompressor -i <input.bin> -o <output.bmp>\n");

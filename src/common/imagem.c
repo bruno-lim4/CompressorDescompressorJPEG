@@ -15,13 +15,22 @@ struct imagem_ {
 };
 
 IMAGEM* criarImagem(FILE* f) {
+    // pega o cabecalho
+    BMPFILEHEADER* fileHeader = leituraFileHeader(f);
+    BMPINFOHEADER* infoHeader = leituraInfoHeader(f);
+
+    if (!checaInfoFileHeader(fileHeader, infoHeader)) {
+        fclose(f);
+        exit(EXIT_FAILURE);
+    }
+
     // cria imagem
     IMAGEM* img = (IMAGEM*) malloc(sizeof(IMAGEM));
     if (img == NULL) return NULL;
 
-    // pega o cabecalho
-    img->fileHeader = leituraFileHeader(f);
-    img->infoHeader = leituraInfoHeader(f);
+    // salva o cabecalho
+    img->fileHeader = fileHeader;
+    img->infoHeader = infoHeader;
 
     // pega as dimensoes no cabecalho
     img->w = get_biWidth(img->infoHeader);
